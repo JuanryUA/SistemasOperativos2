@@ -12,17 +12,12 @@ import CoreV2.FileData;
 import CoreV2.Cola;
 import CoreV2.Nodo;
 import CoreV2.Petition;
-import CoreV2.DirectoryNode;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 
 /**
  *
@@ -69,11 +64,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         // Configurar componentes adicionales
         configurarComponentesCRUD();
-        
-        // Configurar el árbol de directorios (después de que todos los componentes estén inicializados)
-        if (directoryTree != null && fileSystem != null) {
-            configurarDirectoryTree();
-        }
     }
     
     private void configurarComponentesCRUD() {
@@ -83,13 +73,20 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         comboOperacion1.addActionListener((ActionEvent e) -> {
             actualizarInputsSegunOperacion();
         });
+//        getContentPane().add(comboOperacion, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 120, -1));
+        
+        // Crear label para operación
+//        jLabelOperacion = new javax.swing.JLabel("Operación:");
+//        getContentPane().add(jLabelOperacion, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
         
         // Crear label y campo para nuevo nombre (UPDATE)
         jLabel3 = new javax.swing.JLabel("Nuevo Nombre");
         jLabel3.setVisible(false);
+//        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, -1, -1));
         
         txtNuevoNombre = new javax.swing.JTextField();
         txtNuevoNombre.setVisible(false);
+//        getContentPane().add(txtNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 80, -1));
         
         // Crear tabla para cola de procesos
         tablaColaProcesos = new javax.swing.JTable();
@@ -99,76 +96,13 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         ));
         jScrollPaneCola = new javax.swing.JScrollPane(tablaColaProcesos);
         jScrollPaneCola.setPreferredSize(new java.awt.Dimension(400, 200));
+//        getContentPane().add(jScrollPaneCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 350, 400, 200));
         
         jLabelCola = new javax.swing.JLabel("Cola de Procesos:");
+//        getContentPane().add(jLabelCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, -1, -1));
         
         // Inicializar visibilidad de inputs
         actualizarInputsSegunOperacion();
-    }
-    
-    private void configurarDirectoryTree() {
-        // Crear el modelo del árbol
-        if (fileSystem != null && directoryTree != null) {
-            treeModel = new DirectoryTreeModel(fileSystem.getRoot());
-            directoryTree.setModel(treeModel);
-            
-            // Configurar el renderer para mostrar iconos diferentes para archivos y directorios
-            DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
-            renderer.setLeafIcon(renderer.getDefaultLeafIcon());
-            renderer.setOpenIcon(renderer.getDefaultOpenIcon());
-            renderer.setClosedIcon(renderer.getDefaultClosedIcon());
-            directoryTree.setCellRenderer(renderer);
-            
-            // Configurar selección
-            directoryTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            
-            // Agregar listener para mostrar información del nodo seleccionado
-            directoryTree.addTreeSelectionListener(new TreeSelectionListener() {
-                @Override
-                public void valueChanged(TreeSelectionEvent e) {
-                    actualizarInformacionNodo();
-                }
-            });
-        }
-    }
-    
-    private void actualizarInformacionNodo() {
-        Object selectedNode = directoryTree.getLastSelectedPathComponent();
-        if (selectedNode != null && treeModel != null) {
-            DirectoryNode node = treeModel.getDirectoryNode(selectedNode);
-            if (node != null) {
-                String nombre = node.getName();
-                int tamano = node.getSize();
-                String tipo = node.isDirectory() ? "Directorio" : "Archivo";
-                String ruta = node.getFullPath();
-                
-                lblInfoNombre.setText("Nombre: " + nombre);
-                lblInfoTipo.setText("Tipo: " + tipo);
-                lblInfoTamano.setText("Tamaño: " + tamano + " bloques");
-                lblInfoRuta.setText("Ruta: " + ruta);
-                
-                // Si es un directorio, actualizar el campo de ruta para crear archivos
-                if (node.isDirectory()) {
-                    txtRutaDirectorio.setText(ruta);
-                } else {
-                    // Si es un archivo, usar la ruta del directorio padre
-                    if (node.getParent() != null) {
-                        txtRutaDirectorio.setText(node.getParent().getFullPath());
-                    }
-                }
-            }
-        } else {
-            lblInfoNombre.setText("Nombre: -");
-            lblInfoTipo.setText("Tipo: -");
-            lblInfoTamano.setText("Tamaño: -");
-            lblInfoRuta.setText("Ruta: -");
-        }
-    }
-    
-    private void refrescarArbol() {
-        if (treeModel != null && fileSystem != null) {
-            treeModel.refresh();
-        }
     }
 
     private void iniciarTimer() { 
@@ -197,9 +131,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         if (tablaColaProcesos1 != null && so != null) {
             actualizarColaProcesos();
         }
-        
-        // Refrescar árbol de directorios
-        refrescarArbol();
         
         // Verificar errores en operaciones completadas
         verificarErroresEnOperaciones();
@@ -413,6 +344,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         labelNuevoNombre = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
+        treeDirectoryScrollPane = new javax.swing.JScrollPane();
+        directoryTree = new javax.swing.JTree();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -492,62 +425,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel9.setText("Archivo");
         getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
 
-        // Agregar componentes del árbol de directorios
-        directoryTree = new javax.swing.JTree();
-        jScrollPaneTree = new javax.swing.JScrollPane(directoryTree);
-        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 30, 250, 250));
-        
-        jLabel10 = new javax.swing.JLabel("Árbol de Directorios");
-        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 10, -1, -1));
-        
-        // Panel de información
-        panelInfo = new javax.swing.JPanel();
-        panelInfo.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        panelInfo.setBorder(javax.swing.BorderFactory.createTitledBorder("Información"));
-        getContentPane().add(panelInfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 290, 250, 120));
-        
-        lblInfoNombre = new javax.swing.JLabel("Nombre: -");
-        panelInfo.add(lblInfoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, 230, -1));
-        
-        lblInfoTipo = new javax.swing.JLabel("Tipo: -");
-        panelInfo.add(lblInfoTipo, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 230, -1));
-        
-        lblInfoTamano = new javax.swing.JLabel("Tamaño: -");
-        panelInfo.add(lblInfoTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 230, -1));
-        
-        lblInfoRuta = new javax.swing.JLabel("Ruta: -");
-        panelInfo.add(lblInfoRuta, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 230, -1));
-        
-        // Inputs para directorios
-        jLabel11 = new javax.swing.JLabel("Ruta Directorio:");
-        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, -1, -1));
-        
-        txtRutaDirectorio = new javax.swing.JTextField();
-        txtRutaDirectorio.setText("/");
-        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 300, 200, -1));
-        
-        // Botones para gestión de directorios
-        jLabel12 = new javax.swing.JLabel("Nombre Directorio:");
-        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 330, -1, -1));
-        
-        txtNombreDirectorio = new javax.swing.JTextField();
-        getContentPane().add(txtNombreDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 350, 120, -1));
-        
-        btnCrearDirectorio = new javax.swing.JButton("Crear Dir");
-        btnCrearDirectorio.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCrearDirectorioActionPerformed(evt);
-            }
-        });
-        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 350, 70, -1));
-        
-        btnEliminarDirectorio = new javax.swing.JButton("Eliminar Dir");
-        btnEliminarDirectorio.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEliminarDirectorioActionPerformed(evt);
-            }
-        });
-        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 380, 200, -1));
+        directoryTree.setModel(new javax.swing.tree.DefaultTreeModel(null));
+        treeDirectoryScrollPane.setViewportView(directoryTree);
+
+        getContentPane().add(treeDirectoryScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 340, 380, 230));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -586,24 +467,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "El tamaño debe ser mayor a 0.");
                         return;
                     }
-                    // Obtener la ruta del directorio seleccionado o del input
-                    String rutaArchivo = txtRutaDirectorio.getText().trim();
-                    if (rutaArchivo.isEmpty()) {
-                        rutaArchivo = "/";
-                    }
-                    System.out.println("GUI: Creando proceso para archivo: " + nombre + " en " + rutaArchivo);
-                    so.crearProcesoConRuta(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, rutaArchivo);
+                    System.out.println("GUI: Creando proceso para archivo: " + nombre);
+                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano);
                     txtCrearNombre.setText("");
                     txtCrearTamano.setText("");
                     break;
                     
                 case READ:
-                    String rutaRead = txtRutaDirectorio.getText().trim();
-                    if (rutaRead.isEmpty()) {
-                        rutaRead = "/";
-                    }
-                    System.out.println("GUI: Creando proceso para leer archivo: " + nombre + " en " + rutaRead);
-                    so.crearProcesoIOConRuta(FileData.OperationType.READ, nombre, rutaRead);
+                    System.out.println("GUI: Creando proceso para leer archivo: " + nombre);
+                    so.crearProcesoIO(FileData.OperationType.READ, nombre);
                     txtCrearNombre.setText("");
                     break;
                     
@@ -613,23 +485,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "Por favor ingrese el nuevo nombre.");
                         return;
                     }
-                    String rutaUpdate = txtRutaDirectorio.getText().trim();
-                    if (rutaUpdate.isEmpty()) {
-                        rutaUpdate = "/";
-                    }
-                    System.out.println("GUI: Creando proceso para actualizar archivo: " + nombre + " -> " + nuevoNombre + " en " + rutaUpdate);
-                    so.crearProcesoIOConRuta(FileData.OperationType.UPDATE, nombre, nuevoNombre, rutaUpdate);
+                    System.out.println("GUI: Creando proceso para actualizar archivo: " + nombre + " -> " + nuevoNombre);
+                    so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre);
                     txtCrearNombre.setText("");
                     txtNuevoNombre1.setText("");
                     break;
                     
                 case DELETE:
-                    String rutaDelete = txtRutaDirectorio.getText().trim();
-                    if (rutaDelete.isEmpty()) {
-                        rutaDelete = "/";
-                    }
-                    System.out.println("GUI: Creando proceso para eliminar archivo: " + nombre + " en " + rutaDelete);
-                    so.crearProcesoIOConRuta(FileData.OperationType.DELETE, nombre, rutaDelete);
+                    System.out.println("GUI: Creando proceso para eliminar archivo: " + nombre);
+                    so.crearProcesoIO(FileData.OperationType.DELETE, nombre);
                     txtCrearNombre.setText("");
                     break;
             }
@@ -640,63 +504,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCrearActionPerformed
 
     private void comboOperacion1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboOperacion1ActionPerformed
-        actualizarInputsSegunOperacion();
+            System.out.println("prueba");
     }//GEN-LAST:event_comboOperacion1ActionPerformed
-    
-    private void btnCrearDirectorioActionPerformed(java.awt.event.ActionEvent evt) {
-        String nombreDir = txtNombreDirectorio.getText().trim();
-        if (nombreDir.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor ingrese el nombre del directorio.");
-            return;
-        }
-        
-        String rutaPadre = txtRutaDirectorio.getText().trim();
-        if (rutaPadre.isEmpty()) {
-            rutaPadre = "/";
-        }
-        
-        if (fileSystem != null) {
-            boolean exito = fileSystem.crearDirectorio(nombreDir, rutaPadre);
-            if (exito) {
-                JOptionPane.showMessageDialog(this, "Directorio '" + nombreDir + "' creado exitosamente en '" + rutaPadre + "'.");
-                txtNombreDirectorio.setText("");
-                refrescarArbol();
-            } else {
-                JOptionPane.showMessageDialog(this, "Error: No se pudo crear el directorio. Verifique que el directorio padre exista y que no exista ya un directorio con ese nombre.");
-            }
-        }
-    }
-    
-    private void btnEliminarDirectorioActionPerformed(java.awt.event.ActionEvent evt) {
-        String nombreDir = txtNombreDirectorio.getText().trim();
-        if (nombreDir.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor ingrese el nombre del directorio a eliminar.");
-            return;
-        }
-        
-        String rutaPadre = txtRutaDirectorio.getText().trim();
-        if (rutaPadre.isEmpty()) {
-            rutaPadre = "/";
-        }
-        
-        int confirmacion = JOptionPane.showConfirmDialog(this, 
-            "¿Está seguro de eliminar el directorio '" + nombreDir + "' y todo su contenido?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION);
-        
-        if (confirmacion == JOptionPane.YES_OPTION) {
-            if (fileSystem != null) {
-                boolean exito = fileSystem.eliminarDirectorio(nombreDir, rutaPadre);
-                if (exito) {
-                    JOptionPane.showMessageDialog(this, "Directorio '" + nombreDir + "' eliminado exitosamente.");
-                    txtNombreDirectorio.setText("");
-                    refrescarArbol();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Error: No se pudo eliminar el directorio. Verifique que exista.");
-                }
-            }
-        }
-    }
     
 
     /**
@@ -737,6 +546,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCrear;
     private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
+    private javax.swing.JTree directoryTree;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
@@ -745,30 +555,16 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JScrollPane jScrollPaneCola1;
-    private javax.swing.JScrollPane jScrollPaneTree;
     private javax.swing.JLabel labelNuevoNombre;
     private Interfaces.PanelDiscoForm miPanelDisco;
     private Interfaces.PanelTAAForm miPanelTAA;
     private javax.swing.JPanel panelIzq;
-    private javax.swing.JPanel panelInfo;
     private javax.swing.JTable tablaColaProcesos1;
+    private javax.swing.JScrollPane treeDirectoryScrollPane;
     private javax.swing.JTextField txtCrearNombre;
     private javax.swing.JTextField txtCrearTamano;
     private javax.swing.JTextField txtNuevoNombre1;
-    private javax.swing.JTree directoryTree;
-    private javax.swing.JLabel lblInfoNombre;
-    private javax.swing.JLabel lblInfoTipo;
-    private javax.swing.JLabel lblInfoTamano;
-    private javax.swing.JLabel lblInfoRuta;
-    private javax.swing.JTextField txtRutaDirectorio;
-    private javax.swing.JTextField txtNombreDirectorio;
-    private javax.swing.JButton btnCrearDirectorio;
-    private javax.swing.JButton btnEliminarDirectorio;
-    private DirectoryTreeModel treeModel;
     // End of variables declaration//GEN-END:variables
     
     // Variables adicionales para CRUD

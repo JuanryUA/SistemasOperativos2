@@ -5,6 +5,7 @@
  */
 package CoreV2;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.concurrent.Semaphore; // <-- ¡IMPORTANTE!
@@ -149,7 +150,7 @@ Thread.currentThread().interrupt();
                     System.out.println("FileSystem: Error, no hay espacio para '" + nombre + "'.");
                 } else {
                     // Obtener la ruta del archivo
-                    String ruta = data.getRuta() != null ? data.getRuta() : "/";
+                    ruta = data.getRuta() != null ? data.getRuta() : "/";
                     
                     // Verificar que el directorio existe
                     DirectoryNode dir = buscarDirectorioPorRuta(ruta);
@@ -383,7 +384,7 @@ Thread.currentThread().interrupt();
                 Thread.sleep(1000);
                 
                 // Actualizar el nombre del archivo y el nodo en el árbol
-                String ruta = archivo.getRuta();
+                ruta = archivo.getRuta();
                 DirectoryNode dirNode = buscarDirectorioPorRuta(ruta);
                 if (dirNode != null) {
                     DirectoryNode oldFileNode = dirNode.findChild(nombreViejo);
