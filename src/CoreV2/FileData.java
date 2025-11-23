@@ -17,7 +17,7 @@ public class FileData {
     private String fileName;
     private String newFileName; // For UPDATE operation
     private int fileSize; //tamano en bloques del futuro archivo
-    //LUEGO ANADIR DIRECTORIO
+    private String ruta; // Directory path like "root/x/y/z"
     private boolean isProcessed;
     private String processName; // Nombre del proceso que creó este archivo
     private OperationType operationType;
@@ -26,6 +26,7 @@ public class FileData {
     public FileData(String fileName, int fileSize) {
         this.fileName=fileName;
         this.fileSize=fileSize;
+        this.ruta = "root";
         this.isProcessed = false;
         this.processName = null;
         this.operationType = OperationType.CREATE;
@@ -34,6 +35,16 @@ public class FileData {
     public FileData(String fileName, int fileSize, String processName) {
         this.fileName=fileName;
         this.fileSize=fileSize;
+        this.ruta = "root";
+        this.isProcessed = false;
+        this.processName = processName;
+        this.operationType = OperationType.CREATE;
+    }
+    
+    public FileData(String fileName, int fileSize, String ruta, String processName) {
+        this.fileName=fileName;
+        this.fileSize=fileSize;
+        this.ruta = ruta != null ? ruta : "root";
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = OperationType.CREATE;
@@ -42,15 +53,36 @@ public class FileData {
     public FileData(String fileName, OperationType operationType, String processName) {
         this.fileName = fileName;
         this.fileSize = 0;
+        this.ruta = "root";
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = operationType;
     }
     
-    public FileData(String fileName, String newFileName, OperationType operationType, String processName) {
+    public FileData(String fileName, String ruta, OperationType operationType, String processName) {
+        this.fileName = fileName;
+        this.fileSize = 0;
+        this.ruta = ruta != null ? ruta : "root";
+        this.isProcessed = false;
+        this.processName = processName;
+        this.operationType = operationType;
+    }
+    
+//    public FileData(String fileName, String newFileName, OperationType operationType, String processName) {
+//        this.fileName = fileName;
+//        this.newFileName = newFileName;
+//        this.fileSize = 0;
+//        this.ruta = "root";
+//        this.isProcessed = false;
+//        this.processName = processName;
+//        this.operationType = operationType;
+//    }
+    
+    public FileData(String fileName, String newFileName, String ruta, OperationType operationType, String processName) {
         this.fileName = fileName;
         this.newFileName = newFileName;
         this.fileSize = 0;
+        this.ruta = ruta != null ? ruta : "root";
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = operationType;
@@ -114,6 +146,14 @@ public class FileData {
     
     public boolean hasError() {
         return errorMessage != null && !errorMessage.isEmpty();
+    }
+    
+    public String getRuta() {
+        return ruta;
+    }
+    
+    public void setRuta(String ruta) {
+        this.ruta = ruta != null ? ruta : "root";
     }
     
 }

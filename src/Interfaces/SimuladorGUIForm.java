@@ -12,12 +12,20 @@ import CoreV2.FileData;
 import CoreV2.Cola;
 import CoreV2.Nodo;
 import CoreV2.Petition;
+import CoreV2.Lista;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeSelectionModel;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import CoreV2.Directorio;
+import CoreV2.Archivo;
 
 /**
  *
@@ -31,6 +39,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private OperatingSystem so; 
     private Timer timerActualizacion;
     private java.util.Set<String> procesosProcesados = new java.util.HashSet<>(); // Para evitar mostrar popups duplicados
+    private javax.swing.JTree jTreeDirectorio; // JTree for directory structure
+    private javax.swing.JScrollPane jScrollPaneTree; // Scroll pane for JTree
+    private javax.swing.JTextField txtRutaDirectorio; // Directory path input
+    private javax.swing.JButton btnCrearDirectorio; // Button to create directory
+    private javax.swing.JButton btnEliminarDirectorio; // Button to delete directory
+    private javax.swing.JLabel labelInfoNombre; // Label to display selected item name
+    private javax.swing.JLabel labelInfoTamano; // Label to display selected item size
+    private javax.swing.JPanel panelInfo; // Panel to display file/directory info
 
     /**
      * Constructor vacío para el diseñador visual (NetBeans lo usa)
@@ -64,6 +80,235 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         // Configurar componentes adicionales
         configurarComponentesCRUD();
+        configurarJTree();
+    }
+    
+    private void configurarJTree() {
+        // Create JTree
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
+        jTreeDirectorio = new javax.swing.JTree(rootNode);
+        jTreeDirectorio.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        jTreeDirectorio.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                actualizarInfoSeleccionada();
+            }
+        });
+        
+        jScrollPaneTree = new javax.swing.JScrollPane(jTreeDirectorio);
+        jScrollPaneTree.setPreferredSize(new java.awt.Dimension(300, 400));
+        
+        // Create directory path input
+        txtRutaDirectorio = new javax.swing.JTextField();
+        txtRutaDirectorio.setText("root");
+        txtRutaDirectorio.setPreferredSize(new java.awt.Dimension(200, 25));
+        
+        // Create directory buttons
+        btnCrearDirectorio = new javax.swing.JButton("Crear Directorio");
+        btnCrearDirectorio.addActionListener((ActionEvent e) -> {
+            crearDirectorio();
+        });
+        
+        btnEliminarDirectorio = new javax.swing.JButton("Eliminar Directorio");
+        btnEliminarDirectorio.addActionListener((ActionEvent e) -> {
+            eliminarDirectorio();
+        });
+        
+        // Create info panel
+        panelInfo = new javax.swing.JPanel();
+        panelInfo.setLayout(new java.awt.FlowLayout());
+        labelInfoNombre = new javax.swing.JLabel("Nombre: -");
+        labelInfoTamano = new javax.swing.JLabel("Tamaño: -");
+        panelInfo.add(labelInfoNombre);
+        panelInfo.add(labelInfoTamano);
+        
+        // Add components to GUI (using absolute layout)
+        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 30, 300, 400));
+        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
+        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
+        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
+        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 480, 130, 30));
+        getContentPane().add(panelInfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 520, 300, 50));
+        getContentPane().add(new javax.swing.JLabel("Estructura de Directorios"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 10, -1, -1));
+    }
+    
+    private void crearDirectorio() {
+        if (fileSystem == null) {
+            JOptionPane.showMessageDialog(this, "Error: No hay conexión con el FileSystem");
+            return;
+        }
+        
+        String rutaPadre = txtRutaDirectorio.getText().trim();
+        if (rutaPadre.isEmpty()) {
+            rutaPadre = "root";
+        }
+        
+        String nombreDirectorio = JOptionPane.showInputDialog(this, "Ingrese el nombre del directorio:", "Crear Directorio", JOptionPane.QUESTION_MESSAGE);
+        if (nombreDirectorio != null && !nombreDirectorio.trim().isEmpty()) {
+            fileSystem.crearDirectorio(rutaPadre, nombreDirectorio.trim());
+            actualizarJTree();
+        }
+    }
+    
+    private void eliminarDirectorio() {
+        if (fileSystem == null) {
+            JOptionPane.showMessageDialog(this, "Error: No hay conexión con el FileSystem");
+            return;
+        }
+        
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) jTreeDirectorio.getLastSelectedPathComponent();
+        if (selectedNode == null) {
+            JOptionPane.showMessageDialog(this, "Por favor seleccione un directorio para eliminar.");
+            return;
+        }
+        
+        Object userObject = selectedNode.getUserObject();
+        if (userObject instanceof String) {
+            String nombre = (String) userObject;
+            if (nombre.equals("root")) {
+                JOptionPane.showMessageDialog(this, "No se puede eliminar el directorio root.");
+                return;
+            }
+            
+            // Get parent path
+            DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) selectedNode.getParent();
+            String rutaPadre = "root";
+            if (parentNode != null && parentNode.getUserObject() instanceof String) {
+                String parentName = (String) parentNode.getUserObject();
+                if (!parentName.equals("root")) {
+                    // Build path from root
+                    java.util.List<String> pathParts = new java.util.ArrayList<>();
+                    DefaultMutableTreeNode current = parentNode;
+                    while (current != null && current.getUserObject() instanceof String) {
+                        String part = (String) current.getUserObject();
+                        if (!part.equals("root")) {
+                            pathParts.add(0, part);
+                        }
+                        current = (DefaultMutableTreeNode) current.getParent();
+                    }
+                    if (!pathParts.isEmpty()) {
+                        rutaPadre = "root/" + String.join("/", pathParts);
+                    }
+                }
+            }
+            
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                "¿Está seguro de que desea eliminar el directorio '" + nombre + "' y todo su contenido?", 
+                "Confirmar eliminación", 
+                JOptionPane.YES_NO_OPTION);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                fileSystem.eliminarDirectorio(rutaPadre, nombre);
+                actualizarJTree();
+            }
+        }
+    }
+    
+    private void actualizarInfoSeleccionada() {
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) jTreeDirectorio.getLastSelectedPathComponent();
+        if (selectedNode == null) {
+            labelInfoNombre.setText("Nombre: -");
+            labelInfoTamano.setText("Tamaño: -");
+            return;
+        }
+        
+        Object userObject = selectedNode.getUserObject();
+        if (userObject instanceof String) {
+            // It's a directory
+            String nombre = (String) userObject;
+            labelInfoNombre.setText("Nombre: " + nombre);
+            
+            // Calculate directory size
+            if (fileSystem != null) {
+                String ruta = construirRuta(selectedNode);
+                CoreV2.Directorio dir = buscarDirectorioPorRuta(ruta);
+                if (dir != null) {
+                    int tamano = dir.calcularTamano();
+                    labelInfoTamano.setText("Tamaño: " + tamano + " bloques");
+                } else {
+                    labelInfoTamano.setText("Tamaño: -");
+                }
+            }
+        } else if (userObject instanceof Archivo) {
+            // It's a file
+            Archivo arch = (Archivo) userObject;
+            labelInfoNombre.setText("Nombre: " + arch.getNombre());
+            labelInfoTamano.setText("Tamaño: " + arch.getTamano() + " bloques");
+        }
+    }
+    
+    private String construirRuta(DefaultMutableTreeNode node) {
+        java.util.List<String> pathParts = new java.util.ArrayList<>();
+        DefaultMutableTreeNode current = node;
+        while (current != null && current.getUserObject() instanceof String) {
+            String part = (String) current.getUserObject();
+            pathParts.add(0, part);
+            current = (DefaultMutableTreeNode) current.getParent();
+        }
+        return String.join("/", pathParts);
+    }
+    
+    private CoreV2.Directorio buscarDirectorioPorRuta(String ruta) {
+        if (fileSystem == null) return null;
+        // Use reflection or add a public method to FileSystem
+        // For now, we'll navigate manually
+        if (ruta.equals("root")) {
+            return fileSystem.getRoot();
+        }
+        
+        String path = ruta.startsWith("root/") ? ruta.substring(5) : ruta;
+        if (path.isEmpty()) {
+            return fileSystem.getRoot();
+        }
+        
+        String[] partes = path.split("/");
+        CoreV2.Directorio actual = fileSystem.getRoot();
+        
+        for (String parte : partes) {
+            if (parte.isEmpty()) continue;
+            CoreV2.Directorio siguiente = actual.buscarSubdirectorio(parte);
+            if (siguiente == null) {
+                return null;
+            }
+            actual = siguiente;
+        }
+        
+        return actual;
+    }
+    
+    private void actualizarJTree() {
+        if (fileSystem == null) return;
+        
+        DefaultMutableTreeNode rootNode = construirArbolDirectorio(fileSystem.getRoot());
+        DefaultTreeModel model = new DefaultTreeModel(rootNode);
+        jTreeDirectorio.setModel(model);
+        
+        // Expand root
+        for (int i = 0; i < jTreeDirectorio.getRowCount(); i++) {
+            jTreeDirectorio.expandRow(i);
+        }
+    }
+    
+    private DefaultMutableTreeNode construirArbolDirectorio(CoreV2.Directorio directorio) {
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(directorio.getNombre());
+        
+        // Add subdirectories
+        Lista<Directorio> subdirs = directorio.getSubdirectorios();
+        for (int i = 0; i < subdirs.size(); i++) {
+            Directorio subdir = subdirs.get(i);
+            DefaultMutableTreeNode subdirNode = construirArbolDirectorio(subdir);
+            node.add(subdirNode);
+        }
+        
+        // Add files
+        Lista<Archivo> archivos = directorio.getArchivos();
+        for (int i = 0; i < archivos.size(); i++) {
+            Archivo arch = archivos.get(i);
+            DefaultMutableTreeNode archNode = new DefaultMutableTreeNode(arch);
+            node.add(archNode);
+        }
+        
+        return node;
     }
     
     private void configurarComponentesCRUD() {
@@ -134,6 +379,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         // Verificar errores en operaciones completadas
         verificarErroresEnOperaciones();
+        
+        // Actualizar JTree
+        if (jTreeDirectorio != null && fileSystem != null) {
+            actualizarJTree();
+        }
     }
     
     private void verificarErroresEnOperaciones() {
@@ -448,6 +698,12 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 return;
             }
             
+            // Get directory path from input
+            String ruta = txtRutaDirectorio.getText().trim();
+            if (ruta.isEmpty()) {
+                ruta = "root";
+            }
+            
             switch (op) {
                 case CREATE:
                     String tamanoStr = txtCrearTamano.getText();
@@ -460,15 +716,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "El tamaño debe ser mayor a 0.");
                         return;
                     }
-                    System.out.println("GUI: Creando proceso para archivo: " + nombre);
-                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano);
+                    System.out.println("GUI: Creando proceso para archivo: " + nombre + " en " + ruta);
+                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, ruta);
                     txtCrearNombre.setText("");
                     txtCrearTamano.setText("");
                     break;
                     
                 case READ:
-                    System.out.println("GUI: Creando proceso para leer archivo: " + nombre);
-                    so.crearProcesoIO(FileData.OperationType.READ, nombre);
+                    System.out.println("GUI: Creando proceso para leer archivo: " + nombre + " en " + ruta);
+                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta);
                     txtCrearNombre.setText("");
                     break;
                     
@@ -478,15 +734,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "Por favor ingrese el nuevo nombre.");
                         return;
                     }
-                    System.out.println("GUI: Creando proceso para actualizar archivo: " + nombre + " -> " + nuevoNombre);
-                    so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre);
+                    System.out.println("GUI: Creando proceso para actualizar archivo: " + nombre + " -> " + nuevoNombre + " en " + ruta);
+                    so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre, ruta);
                     txtCrearNombre.setText("");
                     txtNuevoNombre1.setText("");
                     break;
                     
                 case DELETE:
-                    System.out.println("GUI: Creando proceso para eliminar archivo: " + nombre);
-                    so.crearProcesoIO(FileData.OperationType.DELETE, nombre);
+                    System.out.println("GUI: Creando proceso para eliminar archivo: " + nombre + " en " + ruta);
+                    so.crearProcesoIO(FileData.OperationType.DELETE, nombre, ruta);
                     txtCrearNombre.setText("");
                     break;
             }

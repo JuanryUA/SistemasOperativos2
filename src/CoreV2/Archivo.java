@@ -12,6 +12,7 @@ package CoreV2;
 public class Archivo {
     private String nombre;
     private int tamano; 
+    private String ruta; // Directory path like "root/x/y/z"
     
     // Tu idea de la lista de bloques. ¡Perfecta!
     // Guardamos los IDs de los bloques que ocupa.
@@ -21,6 +22,7 @@ public class Archivo {
     public Archivo(String nombre, int tamano) {
         this.nombre = nombre;
         this.tamano = tamano;
+        this.ruta = "root"; // Default to root
         this.bloquesAsignados = new Lista<>();    
         this.processName = null;
     }
@@ -28,6 +30,15 @@ public class Archivo {
     public Archivo(String nombre, int tamano, String processName) {
         this.nombre = nombre;
         this.tamano = tamano;
+        this.ruta = "root"; // Default to root
+        this.bloquesAsignados = new Lista<>();    
+        this.processName = processName;
+    }
+    
+    public Archivo(String nombre, int tamano, String ruta, String processName) {
+        this.nombre = nombre;
+        this.tamano = tamano;
+        this.ruta = ruta != null ? ruta : "root";
         this.bloquesAsignados = new Lista<>();    
         this.processName = processName;
     }
@@ -50,6 +61,19 @@ public class Archivo {
     
     public void setProcessName(String processName) {
         this.processName = processName;
+    }
+    
+    public String getRuta() {
+        return ruta;
+    }
+    
+    public void setRuta(String ruta) {
+        this.ruta = ruta != null ? ruta : "root";
+    }
+    
+    @Override
+    public String toString() {
+        return nombre + " (" + tamano + " bloques)";
     }
     
 }

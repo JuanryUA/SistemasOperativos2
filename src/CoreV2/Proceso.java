@@ -81,7 +81,10 @@ public class Proceso {
     private int startAddress = random.nextInt(1000) + 100; // Ejemplo: entre 100 y 1099
     
     public Proceso(int id, String nombre, String fileName, int fileSize) { //constructor simplificado
-       
+        this(id, nombre, fileName, fileSize, "root");
+    }
+    
+    public Proceso(int id, String nombre, String fileName, int fileSize, String ruta) { //constructor simplificado con ruta
         this.id = id;
         this.nombre = nombre;
         this.tipo = Tipo.IO_BOUND;
@@ -97,7 +100,7 @@ public class Proceso {
         this.instruccionesParaES = 1;
         this.ciclosParaCompletarES = 3;
         this.pcb = new PCB(id, nombre, this.estado, this.programCounter, this.memoryAddressRegister);
-        this.fileData= new FileData(fileName, fileSize, nombre); // Pasar el nombre del proceso
+        this.fileData= new FileData(fileName, fileSize, ruta != null ? ruta : "root", nombre); // Pasar el nombre del proceso y ruta
     }
     
     public Proceso(int id, String nombre, FileData fileData) { //constructor con FileData
