@@ -96,16 +96,16 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         ));
         jScrollPaneCola = new javax.swing.JScrollPane(tablaColaProcesos);
         jScrollPaneCola.setPreferredSize(new java.awt.Dimension(400, 200));
-        getContentPane().add(jScrollPaneCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 350, 400, 200));
+//        getContentPane().add(jScrollPaneCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 350, 400, 200));
         
         jLabelCola = new javax.swing.JLabel("Cola de Procesos:");
-        getContentPane().add(jLabelCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, -1, -1));
+//        getContentPane().add(jLabelCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, -1, -1));
         
         // Inicializar visibilidad de inputs
         actualizarInputsSegunOperacion();
     }
 
-    private void iniciarTimer() {
+    private void iniciarTimer() { 
         // Refrescar cada 100ms
         timerActualizacion = new Timer(100, new ActionListener() {
             @Override
@@ -128,7 +128,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         }
         
         // Actualizar cola de procesos
-        if (tablaColaProcesos != null && so != null) {
+        if (tablaColaProcesos1 != null && so != null) {
             actualizarColaProcesos();
         }
         
@@ -214,7 +214,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }
     
     private void actualizarColaProcesos() {
-        javax.swing.table.DefaultTableModel modelo = (javax.swing.table.DefaultTableModel) tablaColaProcesos.getModel();
+        javax.swing.table.DefaultTableModel modelo = (javax.swing.table.DefaultTableModel) tablaColaProcesos1.getModel();
         modelo.setRowCount(0);
         
         // Obtener todas las colas de procesos
@@ -333,27 +333,34 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         panelIzq = new javax.swing.JPanel();
         miPanelTAA = new Interfaces.PanelTAAForm();
         miPanelDisco = new Interfaces.PanelDiscoForm();
+        jLabel5 = new javax.swing.JLabel();
+        jScrollPaneCola1 = new javax.swing.JScrollPane();
+        tablaColaProcesos1 = new javax.swing.JTable();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
         comboOperacion1 = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         txtNuevoNombre1 = new javax.swing.JTextField();
         labelNuevoNombre = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Nombre");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 100, -1, -1));
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 130, -1, -1));
 
         jLabel2.setText("Tamaño");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 150, -1, -1));
-        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 100, 110, -1));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 180, -1, -1));
+        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 130, 110, -1));
 
         txtCrearTamano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCrearTamanoActionPerformed(evt);
             }
         });
-        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 150, 110, -1));
+        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 180, 110, -1));
 
         btnCrear.setText("CREAR");
         btnCrear.addActionListener(new java.awt.event.ActionListener() {
@@ -361,13 +368,37 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 190, 110, 30));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 230, 110, 30));
 
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 40, 500, 160));
+        panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 200, 490, 110));
+        panelIzq.add(miPanelDisco, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 350, 440, 320));
 
-        getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 10, 830, 670));
-        getContentPane().add(miPanelDisco, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 280, 650, 380));
+        jLabel5.setText("Tabla de Asignaciones");
+        panelIzq.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 170, -1, -1));
+
+        tablaColaProcesos1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Proceso", "Operación", "Estado", "Archivo"
+            }
+        ));
+        jScrollPaneCola1.setViewportView(tablaColaProcesos1);
+
+        panelIzq.add(jScrollPaneCola1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 480, 100));
+
+        jLabel6.setText("Visualización de Procesos");
+        panelIzq.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 20, -1, -1));
+
+        jLabel8.setText("Disco Secundario (SD)");
+        panelIzq.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 320, -1, -1));
+
+        getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(740, 0, 520, 690));
 
         comboOperacion1.setModel(new javax.swing.DefaultComboBoxModel<>(FileData.OperationType.values()));
         comboOperacion1.addActionListener(new java.awt.event.ActionListener() {
@@ -375,14 +406,22 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 comboOperacion1ActionPerformed(evt);
             }
         });
-        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 50, 110, 30));
+        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 110, 30));
 
-        jLabel4.setText("Operacion");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 60, -1, -1));
-        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 150, 110, -1));
+        jLabel4.setText("Operación");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 90, -1, -1));
+        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 180, 110, -1));
 
         labelNuevoNombre.setText("Nuevo Nombre");
-        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, -1, 20));
+        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, -1, 20));
+
+        jLabel7.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel7.setText("Directorio");
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 310, -1, -1));
+
+        jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel9.setText("Archivo");
+        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -503,10 +542,17 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JScrollPane jScrollPaneCola1;
     private javax.swing.JLabel labelNuevoNombre;
     private Interfaces.PanelDiscoForm miPanelDisco;
     private Interfaces.PanelTAAForm miPanelTAA;
     private javax.swing.JPanel panelIzq;
+    private javax.swing.JTable tablaColaProcesos1;
     private javax.swing.JTextField txtCrearNombre;
     private javax.swing.JTextField txtCrearTamano;
     private javax.swing.JTextField txtNuevoNombre1;
