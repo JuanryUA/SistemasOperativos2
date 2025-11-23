@@ -82,11 +82,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         // Crear label y campo para nuevo nombre (UPDATE)
         jLabel3 = new javax.swing.JLabel("Nuevo Nombre");
         jLabel3.setVisible(false);
-        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, -1, -1));
+//        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, -1, -1));
         
         txtNuevoNombre = new javax.swing.JTextField();
         txtNuevoNombre.setVisible(false);
-        getContentPane().add(txtNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 80, -1));
+//        getContentPane().add(txtNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 80, -1));
         
         // Crear tabla para cola de procesos
         tablaColaProcesos = new javax.swing.JTable();
@@ -271,10 +271,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         // Ocultar todos primero
         jLabel1.setVisible(false);
         jLabel2.setVisible(false);
-        jLabel3.setVisible(false);
+        labelNuevoNombre.setVisible(false);
         txtCrearNombre.setVisible(false);
         txtCrearTamano.setVisible(false);
-        txtNuevoNombre.setVisible(false);
+        txtNuevoNombre1.setVisible(false);
         
         switch (op) {
             case CREATE:
@@ -284,33 +284,33 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 jLabel2.setText("Tamaño");
                 txtCrearNombre.setVisible(true);
                 txtCrearTamano.setVisible(true);
-                txtNuevoNombre.setVisible(false);
+                txtNuevoNombre1.setVisible(false);
                 btnCrear.setText("CREAR");
                 break;
             case READ:
                 jLabel1.setVisible(true);
-                jLabel1.setText("Nombre Archivo");
+                jLabel1.setText("Nombre");
                 txtCrearNombre.setVisible(true);
                 txtCrearTamano.setVisible(false);
-                txtNuevoNombre.setVisible(false);
+                txtNuevoNombre1.setVisible(false);
                 btnCrear.setText("LEER");
                 break;
             case UPDATE:
                 jLabel1.setVisible(true);
-                jLabel3.setVisible(true);
-                jLabel1.setText("Nombre Actual");
-                jLabel3.setText("Nuevo Nombre");
+                labelNuevoNombre.setVisible(true);
+                jLabel1.setText("Nombre");
+                labelNuevoNombre.setText("Nuevo Nombre");
                 txtCrearNombre.setVisible(true);
-                txtNuevoNombre.setVisible(true);
+                txtNuevoNombre1.setVisible(true);
                 txtCrearTamano.setVisible(false);
                 btnCrear.setText("ACTUALIZAR");
                 break;
             case DELETE:
                 jLabel1.setVisible(true);
-                jLabel1.setText("Nombre Archivo");
+                jLabel1.setText("Nombre");
                 txtCrearNombre.setVisible(true);
                 txtCrearTamano.setVisible(false);
-                txtNuevoNombre.setVisible(false);
+                txtNuevoNombre1.setVisible(false);
                 btnCrear.setText("ELIMINAR");
                 break;
         }
@@ -335,23 +335,25 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         miPanelDisco = new Interfaces.PanelDiscoForm();
         comboOperacion1 = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
+        txtNuevoNombre1 = new javax.swing.JTextField();
+        labelNuevoNombre = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Nombre");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 90, -1, -1));
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 100, -1, -1));
 
-        jLabel2.setText("Tamano");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 170, -1, -1));
-        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 130, 80, -1));
+        jLabel2.setText("Tamaño");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 150, -1, -1));
+        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 100, 110, -1));
 
         txtCrearTamano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCrearTamanoActionPerformed(evt);
             }
         });
-        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 210, 80, -1));
+        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 150, 110, -1));
 
         btnCrear.setText("CREAR");
         btnCrear.addActionListener(new java.awt.event.ActionListener() {
@@ -359,10 +361,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 260, -1, -1));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 190, 110, 30));
 
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 40, 500, 310));
+        panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 40, 500, 160));
 
         getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 10, 830, 670));
         getContentPane().add(miPanelDisco, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 280, 650, 380));
@@ -373,10 +375,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 comboOperacion1ActionPerformed(evt);
             }
         });
-        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 50, 90, -1));
+        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 50, 110, 30));
 
         jLabel4.setText("Operacion");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 20, -1, -1));
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 60, -1, -1));
+        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 150, 110, -1));
+
+        labelNuevoNombre.setText("Nuevo Nombre");
+        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, -1, 20));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -428,7 +434,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                     break;
                     
                 case UPDATE:
-                    String nuevoNombre = txtNuevoNombre.getText();
+                    String nuevoNombre = txtNuevoNombre1.getText();
                     if (nuevoNombre.isEmpty()) {
                         JOptionPane.showMessageDialog(this, "Por favor ingrese el nuevo nombre.");
                         return;
@@ -436,7 +442,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                     System.out.println("GUI: Creando proceso para actualizar archivo: " + nombre + " -> " + nuevoNombre);
                     so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre);
                     txtCrearNombre.setText("");
-                    txtNuevoNombre.setText("");
+                    txtNuevoNombre1.setText("");
                     break;
                     
                 case DELETE:
@@ -497,11 +503,13 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel labelNuevoNombre;
     private Interfaces.PanelDiscoForm miPanelDisco;
     private Interfaces.PanelTAAForm miPanelTAA;
     private javax.swing.JPanel panelIzq;
     private javax.swing.JTextField txtCrearNombre;
     private javax.swing.JTextField txtCrearTamano;
+    private javax.swing.JTextField txtNuevoNombre1;
     // End of variables declaration//GEN-END:variables
     
     // Variables adicionales para CRUD
