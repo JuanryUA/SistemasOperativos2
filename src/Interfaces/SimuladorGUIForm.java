@@ -100,17 +100,17 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         // Create directory path input
         txtRutaDirectorio = new javax.swing.JTextField();
-        txtRutaDirectorio.setText("root");
-        txtRutaDirectorio.setPreferredSize(new java.awt.Dimension(200, 25));
+        txtRutaDirectorio1.setText("root");
+        txtRutaDirectorio1.setPreferredSize(new java.awt.Dimension(200, 25));
         
         // Create directory buttons
         btnCrearDirectorio = new javax.swing.JButton("Crear Directorio");
-        btnCrearDirectorio.addActionListener((ActionEvent e) -> {
+        btnCrearDirectorio1.addActionListener((ActionEvent e) -> {
             crearDirectorio();
         });
         
         btnEliminarDirectorio = new javax.swing.JButton("Eliminar Directorio");
-        btnEliminarDirectorio.addActionListener((ActionEvent e) -> {
+        btnEliminarDirectorio1.addActionListener((ActionEvent e) -> {
             eliminarDirectorio();
         });
         
@@ -124,10 +124,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         // Add components to GUI (using absolute layout)
         getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 30, 300, 400));
-        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
-        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
-        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
-        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 480, 130, 30));
+//        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
+//        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
+//        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
+//        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 480, 130, 30));
         getContentPane().add(panelInfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 520, 300, 50));
         getContentPane().add(new javax.swing.JLabel("Estructura de Directorios"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 10, -1, -1));
     }
@@ -138,7 +138,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             return;
         }
         
-        String rutaPadre = txtRutaDirectorio.getText().trim();
+        String rutaPadre = txtRutaDirectorio1.getText().trim();
         if (rutaPadre.isEmpty()) {
             rutaPadre = "root";
         }
@@ -594,6 +594,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         labelNuevoNombre = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
+        txtRutaDirectorio1 = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+        btnCrearDirectorio1 = new javax.swing.JButton();
+        btnEliminarDirectorio1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -673,6 +677,27 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel9.setText("Archivo");
         getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
 
+        txtRutaDirectorio1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtRutaDirectorio1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(txtRutaDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 380, 120, -1));
+
+        jLabel10.setText("Ruta:");
+        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 380, 30, 20));
+
+        btnCrearDirectorio1.setText("Crear Directorio");
+        btnCrearDirectorio1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCrearDirectorio1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 420, 160, -1));
+
+        btnEliminarDirectorio1.setText("Eliminar Directorio");
+        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 460, 160, -1));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -699,7 +724,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             }
             
             // Get directory path from input
-            String ruta = txtRutaDirectorio.getText().trim();
+            String ruta = txtRutaDirectorio1.getText().trim();
             if (ruta.isEmpty()) {
                 ruta = "root";
             }
@@ -755,6 +780,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private void comboOperacion1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboOperacion1ActionPerformed
             System.out.println("prueba");
     }//GEN-LAST:event_comboOperacion1ActionPerformed
+
+    private void txtRutaDirectorio1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtRutaDirectorio1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtRutaDirectorio1ActionPerformed
+
+    private void btnCrearDirectorio1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearDirectorio1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnCrearDirectorio1ActionPerformed
     
 
     /**
@@ -794,8 +827,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCrear;
+    private javax.swing.JButton btnCrearDirectorio1;
+    private javax.swing.JButton btnEliminarDirectorio1;
     private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -812,6 +848,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JTextField txtCrearNombre;
     private javax.swing.JTextField txtCrearTamano;
     private javax.swing.JTextField txtNuevoNombre1;
+    private javax.swing.JTextField txtRutaDirectorio1;
     // End of variables declaration//GEN-END:variables
     
     // Variables adicionales para CRUD
