@@ -136,6 +136,22 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         this.agregarProceso(p);
     }
     
+    //IO Bound con ruta
+    public void crearProcesoConRuta(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta) {
+        String nombre = "P"+processCounter;
+
+        Proceso p = new Proceso(processCounter, nombre, nombreFuturoArchivo, sizeFuturoArchivo);
+        if (p.getFileData() != null) {
+            p.getFileData().setRuta(ruta);
+        }
+        p.setEstado(Proceso.Estado.NUEVO);
+        p.setPrimerTicEjecucion(clock.getTic());
+        
+        processCounter++;
+        moverANuevos(p);
+        this.agregarProceso(p);
+    }
+    
     // Método para crear procesos IO con diferentes operaciones CRUD
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo) {
         String nombre = "P" + processCounter;
@@ -153,6 +169,31 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         String nombre = "P" + processCounter;
         // Crear FileData con el tipo de operación correcto
         FileData fileData = new FileData(nombreArchivo, nuevoNombre, operationType, nombre);
+        Proceso p = new Proceso(processCounter, nombre, fileData);
+        p.setEstado(Proceso.Estado.NUEVO);
+        p.setPrimerTicEjecucion(clock.getTic());
+        processCounter++;
+        moverANuevos(p);
+        this.agregarProceso(p);
+    }
+    
+    // Métodos con ruta
+    public void crearProcesoIOConRuta(FileData.OperationType operationType, String nombreArchivo, String ruta) {
+        String nombre = "P" + processCounter;
+        // Crear FileData con el tipo de operación correcto y ruta
+        FileData fileData = new FileData(nombreArchivo, operationType, nombre, ruta);
+        Proceso p = new Proceso(processCounter, nombre, fileData);
+        p.setEstado(Proceso.Estado.NUEVO);
+        p.setPrimerTicEjecucion(clock.getTic());
+        processCounter++;
+        moverANuevos(p);
+        this.agregarProceso(p);
+    }
+    
+    public void crearProcesoIOConRuta(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta) {
+        String nombre = "P" + processCounter;
+        // Crear FileData con el tipo de operación correcto y ruta
+        FileData fileData = new FileData(nombreArchivo, nuevoNombre, operationType, nombre, ruta);
         Proceso p = new Proceso(processCounter, nombre, fileData);
         p.setEstado(Proceso.Estado.NUEVO);
         p.setPrimerTicEjecucion(clock.getTic());

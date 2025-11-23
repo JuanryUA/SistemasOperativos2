@@ -17,6 +17,7 @@ public class FileSystem {
     private Disk disk;
     private DiskScheduler diskScheduler; 
     private Lista<Archivo> tablaDeArchivos = new Lista<Archivo>();
+    private DirectoryNode root; // Raíz del árbol de directorios
     
     // vvv ¡AÑADE ESTE GUARDIA! vvv
     private final Semaphore mutexCola = new Semaphore(1); // 1 = solo 1 hilo puede pasar
@@ -29,6 +30,8 @@ public class FileSystem {
         this.disk=disk;
         this.diskScheduler=diskScheduler;
         this.colaPeticiones = new Cola();
+        // Inicializar el árbol con root
+        this.root = new DirectoryNode("/", null);
     }
     
     public void agregarPeticion(FileData fileData){
@@ -121,9 +124,13 @@ Thread.currentThread().interrupt();
                 String nombre = data.getFileName();
                 int tamano = data.getFileSize();
                 
-                // 1. Validar si ya existe
-                if (buscarArchivo(nombre) != null) {
-                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' ya existe.");
+                // Obtener la ruta del archivo
+                String ruta = data.getRuta() != null ? data.getRuta() : "/";
+                
+                // 1. Validar si ya existe en esa ruta
+                if (buscarArchivo(nombre, ruta) != null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' ya existe en '" + ruta + "'.");
+                    data.setErrorMessage("El archivo '" + nombre + "' ya existe en ese directorio.");
                     data.setIsProcessed(true); // ¡Avisa al DMA que "terminó" (con error)!
                     estaOcupado = false;
                     System.out.println("FileSystem: LIBRE (por este hilo).");
@@ -141,15 +148,42 @@ Thread.currentThread().interrupt();
                     // No hay espacio
                     System.out.println("FileSystem: Error, no hay espacio para '" + nombre + "'.");
                 } else {
+                    // Obtener la ruta del archivo
+                    String ruta = data.getRuta() != null ? data.getRuta() : "/";
+                    
+                    // Verificar que el directorio existe
+                    DirectoryNode dir = buscarDirectorioPorRuta(ruta);
+                    if (dir == null) {
+                        System.out.println("FileSystem: Error, el directorio '" + ruta + "' no existe.");
+                        data.setErrorMessage("El directorio '" + ruta + "' no existe.");
+                        data.setIsProcessed(true);
+                        estaOcupado = false;
+                        return;
+                    }
+                    
+                    // Verificar que no exista ya un archivo con ese nombre en ese directorio
+                    if (dir.findChild(nombre) != null) {
+                        System.out.println("FileSystem: Error, el archivo '" + nombre + "' ya existe en '" + ruta + "'.");
+                        data.setErrorMessage("El archivo '" + nombre + "' ya existe en ese directorio.");
+                        data.setIsProcessed(true);
+                        estaOcupado = false;
+                        return;
+                    }
+                    
                     // Creamos el archivo con nombre, tamaño y proceso que lo creó
                     String processName = data.getProcessName();
-                    Archivo nuevoArchivo = new Archivo(nombre, tamano, processName);
+                    Archivo nuevoArchivo = new Archivo(nombre, tamano, processName, ruta);
 
                     // Y ahora le asignamos los bloques que nos dio el disco
                     nuevoArchivo.setBloquesAsignados(bloquesAsignados);
 
-                    tablaDeArchivos.add(nuevoArchivo); 
-                    System.out.println("FileSystem: Archivo '" + nombre + "' CREADO con éxito.");
+                    // Agregar a la tabla de archivos
+                    tablaDeArchivos.add(nuevoArchivo);
+                    
+                    // Agregar al árbol de directorios
+                    agregarArchivoAlArbol(nuevoArchivo, ruta);
+                    
+                    System.out.println("FileSystem: Archivo '" + nombre + "' CREADO con éxito en '" + ruta + "'.");
                     System.out.println("            TAMANO ARCHIVOOOOOL " + nuevoArchivo.getTamano());
                 }
                                 
@@ -176,16 +210,22 @@ Thread.currentThread().interrupt();
 //        }).start();
     }
     
-    // Helper para buscar un archivo en nuestra 'tablaDeArchivos'
-    private Archivo buscarArchivo(String nombre) {
-        System.out.println(         "TABLA DE ARCHIVO: "+ tablaDeArchivos);
+    // Helper para buscar un archivo en nuestra 'tablaDeArchivos' (por nombre y ruta)
+    private Archivo buscarArchivo(String nombre, String ruta) {
+        System.out.println("TABLA DE ARCHIVO: "+ tablaDeArchivos);
+        String rutaBusqueda = ruta != null ? ruta : "/";
         for (int i = 0; i < tablaDeArchivos.size(); i++) {
             Archivo actual = tablaDeArchivos.get(i);
-            if (actual.getNombre().equals(nombre)) {
+            if (actual.getNombre().equals(nombre) && actual.getRuta().equals(rutaBusqueda)) {
                 return actual;
             }
         }
         return null; // No encontrado
+    }
+    
+    // Helper para buscar un archivo solo por nombre (compatibilidad)
+    private Archivo buscarArchivo(String nombre) {
+        return buscarArchivo(nombre, "/");
     }
     
     public DiskScheduler getDiskScheduler (){
@@ -219,18 +259,21 @@ Thread.currentThread().interrupt();
             try {
                 FileData data = peticionDeLaCola.getFileData();
                 String nombre = data.getFileName();
+                String ruta = data.getRuta() != null ? data.getRuta() : "/";
                 
-                // Buscar el archivo
-                Archivo archivo = buscarArchivo(nombre);
+                // Buscar el archivo en el árbol
+                DirectoryNode archivoNode = buscarArchivoEnArbol(nombre, ruta);
                 
-                if (archivo == null) {
-                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe.");
-                    data.setErrorMessage("El archivo '" + nombre + "' no existe.");
+                if (archivoNode == null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe en '" + ruta + "'.");
+                    data.setErrorMessage("El archivo '" + nombre + "' no existe en ese directorio.");
                     data.setIsProcessed(true);
                     estaOcupado = false;
                     System.out.println("FileSystem: LIBRE (por este hilo).");
                     return;
                 }
+                
+                Archivo archivo = archivoNode.getArchivo();
                 
                 // Simular tiempo de operación
                 Thread.sleep(1000);
@@ -241,9 +284,12 @@ Thread.currentThread().interrupt();
                     disk.liberarBloques(bloquesALiberar);
                 }
                 
+                // Eliminar el archivo del árbol
+                eliminarArchivoDelArbol(nombre, ruta);
+                
                 // Eliminar el archivo de la tabla
                 tablaDeArchivos.remove(archivo);
-                System.out.println("FileSystem: Archivo '" + nombre + "' ELIMINADO con éxito.");
+                System.out.println("FileSystem: Archivo '" + nombre + "' ELIMINADO con éxito de '" + ruta + "'.");
                 
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
@@ -260,13 +306,14 @@ Thread.currentThread().interrupt();
             try {
                 FileData data = peticionDeLaCola.getFileData();
                 String nombre = data.getFileName();
+                String ruta = data.getRuta() != null ? data.getRuta() : "/";
                 
-                // Buscar el archivo
-                Archivo archivo = buscarArchivo(nombre);
+                // Buscar el archivo en el árbol
+                DirectoryNode archivoNode = buscarArchivoEnArbol(nombre, ruta);
                 
-                if (archivo == null) {
-                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe.");
-                    data.setErrorMessage("El archivo '" + nombre + "' no existe.");
+                if (archivoNode == null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe en '" + ruta + "'.");
+                    data.setErrorMessage("El archivo '" + nombre + "' no existe en ese directorio.");
                     data.setIsProcessed(true);
                     estaOcupado = false;
                     System.out.println("FileSystem: LIBRE (por este hilo).");
@@ -305,22 +352,27 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Buscar el archivo
-                Archivo archivo = buscarArchivo(nombreViejo);
+                String ruta = data.getRuta() != null ? data.getRuta() : "/";
                 
-                if (archivo == null) {
-                    System.out.println("FileSystem: Error, el archivo '" + nombreViejo + "' no existe.");
-                    data.setErrorMessage("El archivo '" + nombreViejo + "' no existe.");
+                // Buscar el archivo en el árbol
+                DirectoryNode archivoNode = buscarArchivoEnArbol(nombreViejo, ruta);
+                
+                if (archivoNode == null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombreViejo + "' no existe en '" + ruta + "'.");
+                    data.setErrorMessage("El archivo '" + nombreViejo + "' no existe en ese directorio.");
                     data.setIsProcessed(true);
                     estaOcupado = false;
                     System.out.println("FileSystem: LIBRE (por este hilo).");
                     return;
                 }
                 
-                // Validar que el nuevo nombre no exista ya
-                if (buscarArchivo(nombreNuevo) != null) {
-                    System.out.println("FileSystem: Error, el archivo '" + nombreNuevo + "' ya existe.");
-                    data.setErrorMessage("El archivo '" + nombreNuevo + "' ya existe.");
+                Archivo archivo = archivoNode.getArchivo();
+                
+                // Validar que el nuevo nombre no exista ya en la misma ruta
+                DirectoryNode parentDir = buscarDirectorioPorRuta(ruta);
+                if (parentDir != null && parentDir.findChild(nombreNuevo) != null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombreNuevo + "' ya existe en ese directorio.");
+                    data.setErrorMessage("El archivo '" + nombreNuevo + "' ya existe en ese directorio.");
                     data.setIsProcessed(true);
                     estaOcupado = false;
                     System.out.println("FileSystem: LIBRE (por este hilo).");
@@ -330,7 +382,17 @@ Thread.currentThread().interrupt();
                 // Simular tiempo de operación
                 Thread.sleep(1000);
                 
-                // Actualizar el nombre del archivo
+                // Actualizar el nombre del archivo y el nodo en el árbol
+                String ruta = archivo.getRuta();
+                DirectoryNode dirNode = buscarDirectorioPorRuta(ruta);
+                if (dirNode != null) {
+                    DirectoryNode oldFileNode = dirNode.findChild(nombreViejo);
+                    if (oldFileNode != null) {
+                        dirNode.removeChild(oldFileNode);
+                        oldFileNode.setName(nombreNuevo);
+                        dirNode.addChild(oldFileNode);
+                    }
+                }
                 archivo.setNombre(nombreNuevo);
                 System.out.println("FileSystem: Archivo '" + nombreViejo + "' RENOMBRADO a '" + nombreNuevo + "' con éxito.");
                 
@@ -342,6 +404,155 @@ Thread.currentThread().interrupt();
                 System.out.println("FileSystem: LIBERADO (por este hilo).");
             }
         }).start();
+    }
+    
+    // ========== MÉTODOS PARA GESTIÓN DE DIRECTORIOS ==========
+    
+    public DirectoryNode getRoot() {
+        return root;
+    }
+    
+    /**
+     * Busca un directorio por su ruta (ej: "/root/folder1")
+     */
+    public DirectoryNode buscarDirectorioPorRuta(String ruta) {
+        if (ruta == null || ruta.isEmpty() || ruta.equals("/")) {
+            return root;
+        }
+        
+        String[] partes = ruta.split("/");
+        DirectoryNode actual = root;
+        
+        for (String parte : partes) {
+            if (parte.isEmpty()) continue; // Saltar partes vacías
+            
+            DirectoryNode hijo = actual.findChild(parte);
+            if (hijo == null || !hijo.isDirectory()) {
+                return null; // No encontrado
+            }
+            actual = hijo;
+        }
+        
+        return actual;
+    }
+    
+    /**
+     * Crea un nuevo directorio en la ruta especificada
+     */
+    public boolean crearDirectorio(String nombre, String rutaPadre) {
+        DirectoryNode padre = buscarDirectorioPorRuta(rutaPadre);
+        if (padre == null) {
+            return false;
+        }
+        
+        // Verificar que no exista ya
+        if (padre.findChild(nombre) != null) {
+            return false;
+        }
+        
+        DirectoryNode nuevoDir = new DirectoryNode(nombre, padre);
+        padre.addChild(nuevoDir);
+        return true;
+    }
+    
+    /**
+     * Elimina un directorio y todo su contenido
+     */
+    public boolean eliminarDirectorio(String nombre, String rutaPadre) {
+        DirectoryNode padre = buscarDirectorioPorRuta(rutaPadre);
+        if (padre == null) {
+            return false;
+        }
+        
+        DirectoryNode dir = padre.findChild(nombre);
+        if (dir == null || !dir.isDirectory()) {
+            return false;
+        }
+        
+        // Eliminar todos los archivos del directorio y subdirectorios
+        eliminarRecursivo(dir);
+        
+        // Eliminar el directorio del padre
+        padre.removeChild(dir);
+        return true;
+    }
+    
+    /**
+     * Elimina recursivamente un directorio y todo su contenido
+     */
+    private void eliminarRecursivo(DirectoryNode nodo) {
+        if (nodo.isDirectory() && nodo.getChildren() != null) {
+            // Crear una copia de la lista para evitar problemas de modificación concurrente
+            List<DirectoryNode> hijos = new java.util.ArrayList<>(nodo.getChildren());
+            for (DirectoryNode hijo : hijos) {
+                if (hijo.isFile() && hijo.getArchivo() != null) {
+                    // Eliminar archivo de la tabla
+                    tablaDeArchivos.remove(hijo.getArchivo());
+                    // Liberar bloques
+                    Lista<Integer> bloques = hijo.getArchivo().getBloquesAsignados();
+                    if (bloques != null && bloques.size() > 0) {
+                        disk.liberarBloques(bloques);
+                    }
+                } else if (hijo.isDirectory()) {
+                    eliminarRecursivo(hijo);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Busca un archivo en el árbol por nombre y ruta
+     */
+    public DirectoryNode buscarArchivoEnArbol(String nombre, String ruta) {
+        DirectoryNode dir = buscarDirectorioPorRuta(ruta);
+        if (dir == null) {
+            return null;
+        }
+        
+        DirectoryNode archivoNode = dir.findChild(nombre);
+        if (archivoNode != null && archivoNode.isFile()) {
+            return archivoNode;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Agrega un archivo al árbol de directorios
+     */
+    public boolean agregarArchivoAlArbol(Archivo archivo, String ruta) {
+        DirectoryNode dir = buscarDirectorioPorRuta(ruta);
+        if (dir == null) {
+            return false;
+        }
+        
+        // Verificar que no exista ya
+        if (dir.findChild(archivo.getNombre()) != null) {
+            return false;
+        }
+        
+        DirectoryNode archivoNode = new DirectoryNode(archivo.getNombre(), archivo, dir);
+        dir.addChild(archivoNode);
+        archivo.setRuta(ruta);
+        return true;
+    }
+    
+    /**
+     * Elimina un archivo del árbol
+     */
+    public boolean eliminarArchivoDelArbol(String nombre, String ruta) {
+        DirectoryNode dir = buscarDirectorioPorRuta(ruta);
+        if (dir == null) {
+            return false;
+        }
+        
+        DirectoryNode archivoNode = dir.findChild(nombre);
+        if (archivoNode == null || !archivoNode.isFile()) {
+            return false;
+        }
+        
+        dir.removeChild(archivoNode);
+        return true;
     }
     
     
