@@ -279,14 +279,114 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private void actualizarJTree() {
         if (fileSystem == null) return;
         
+        // Save current selection path
+        javax.swing.tree.TreePath selectedPath = jTreeDirectorio.getSelectionPath();
+        Object selectedObject = null;
+        if (selectedPath != null) {
+            DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
+            if (selectedNode != null) {
+                selectedObject = selectedNode.getUserObject();
+            }
+        }
+        
+        // Save expanded state
+        java.util.Set<Object> expandedObjects = new java.util.HashSet<>();
+        for (int i = 0; i < jTreeDirectorio.getRowCount(); i++) {
+            javax.swing.tree.TreePath path = jTreeDirectorio.getPathForRow(i);
+            if (jTreeDirectorio.isExpanded(path)) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                if (node != null) {
+                    expandedObjects.add(node.getUserObject());
+                }
+            }
+        }
+        
+        // Rebuild tree
         DefaultMutableTreeNode rootNode = construirArbolDirectorio(fileSystem.getRoot());
         DefaultTreeModel model = new DefaultTreeModel(rootNode);
         jTreeDirectorio.setModel(model);
         
-        // Expand root
-        for (int i = 0; i < jTreeDirectorio.getRowCount(); i++) {
-            jTreeDirectorio.expandRow(i);
+        // Restore expanded state
+        restoreExpandedState(jTreeDirectorio, rootNode, expandedObjects);
+        
+        // Restore selection
+        if (selectedObject != null) {
+            restoreSelection(jTreeDirectorio, rootNode, selectedObject);
+            // Update info panel after restoring selection
+            actualizarInfoSeleccionada();
+        } else {
+            // Expand root by default if nothing was selected
+            for (int i = 0; i < jTreeDirectorio.getRowCount(); i++) {
+                jTreeDirectorio.expandRow(i);
+            }
         }
+    }
+    
+    private void restoreExpandedState(javax.swing.JTree tree, DefaultMutableTreeNode node, java.util.Set<Object> expandedObjects) {
+        if (node == null) return;
+        
+        Object userObject = node.getUserObject();
+        if (expandedObjects.contains(userObject)) {
+            javax.swing.tree.TreePath path = new javax.swing.tree.TreePath(node.getPath());
+            tree.expandPath(path);
+        }
+        
+        // Recursively check children
+        for (int i = 0; i < node.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
+            restoreExpandedState(tree, child, expandedObjects);
+        }
+    }
+    
+    private boolean restoreSelection(javax.swing.JTree tree, DefaultMutableTreeNode node, Object targetObject) {
+        if (node == null) return false;
+        
+        Object userObject = node.getUserObject();
+        boolean found = false;
+        
+        // For String (directories), compare by value
+        if (userObject instanceof String && targetObject instanceof String) {
+            if (userObject.equals(targetObject)) {
+                found = true;
+            }
+        }
+        // For Archivo objects, compare by name and path
+        else if (userObject instanceof Archivo && targetObject instanceof Archivo) {
+            Archivo arch1 = (Archivo) userObject;
+            Archivo arch2 = (Archivo) targetObject;
+            if (arch1.getNombre().equals(arch2.getNombre()) && 
+                arch1.getRuta().equals(arch2.getRuta())) {
+                found = true;
+            }
+        }
+        // For other cases, use equals
+        else if (userObject != null && userObject.equals(targetObject)) {
+            found = true;
+        }
+        
+        if (found) {
+            javax.swing.tree.TreePath path = new javax.swing.tree.TreePath(node.getPath());
+            // Expand all parent nodes
+            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
+            while (parent != null) {
+                javax.swing.tree.TreePath parentPath = new javax.swing.tree.TreePath(parent.getPath());
+                tree.expandPath(parentPath);
+                parent = (DefaultMutableTreeNode) parent.getParent();
+            }
+            tree.setSelectionPath(path);
+            tree.scrollPathToVisible(path);
+            return true;
+        }
+        
+        // Recursively search children
+        for (int i = 0; i < node.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
+            if (restoreSelection(tree, child, targetObject)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     private DefaultMutableTreeNode construirArbolDirectorio(CoreV2.Directorio directorio) {
