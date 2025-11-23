@@ -135,6 +135,31 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         moverANuevos(p);
         this.agregarProceso(p);
     }
+    
+    // Método para crear procesos IO con diferentes operaciones CRUD
+    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo) {
+        String nombre = "P" + processCounter;
+        // Crear FileData con el tipo de operación correcto
+        FileData fileData = new FileData(nombreArchivo, operationType, nombre);
+        Proceso p = new Proceso(processCounter, nombre, fileData);
+        p.setEstado(Proceso.Estado.NUEVO);
+        p.setPrimerTicEjecucion(clock.getTic());
+        processCounter++;
+        moverANuevos(p);
+        this.agregarProceso(p);
+    }
+    
+    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre) {
+        String nombre = "P" + processCounter;
+        // Crear FileData con el tipo de operación correcto
+        FileData fileData = new FileData(nombreArchivo, nuevoNombre, operationType, nombre);
+        Proceso p = new Proceso(processCounter, nombre, fileData);
+        p.setEstado(Proceso.Estado.NUEVO);
+        p.setPrimerTicEjecucion(clock.getTic());
+        processCounter++;
+        moverANuevos(p);
+        this.agregarProceso(p);
+    }
 
     public void agregarProceso(Proceso p) {
         try {

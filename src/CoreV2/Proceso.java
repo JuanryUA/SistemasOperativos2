@@ -99,6 +99,23 @@ public class Proceso {
         this.pcb = new PCB(id, nombre, this.estado, this.programCounter, this.memoryAddressRegister);
         this.fileData= new FileData(fileName, fileSize, nombre); // Pasar el nombre del proceso
     }
+    
+    public Proceso(int id, String nombre, FileData fileData) { //constructor con FileData
+        this.id = id;
+        this.nombre = nombre;
+        this.tipo = Tipo.IO_BOUND;
+        this.instrucciones = 2;
+        this.actualInstruccion = 0;
+        this.duracionTotal = instrucciones;
+        this.tamano = this.instrucciones*2;
+        this.estado = Estado.NUEVO;
+        this.programCounter = this.startAddress;
+        this.memoryAddressRegister = this.programCounter * this.instrucciones;
+        this.instruccionesParaES = 1;
+        this.ciclosParaCompletarES = 3;
+        this.pcb = new PCB(id, nombre, this.estado, this.programCounter, this.memoryAddressRegister);
+        this.fileData = fileData;
+    }
 
     public FileData getFileData() {
         return fileData;

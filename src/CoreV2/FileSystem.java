@@ -78,7 +78,23 @@ Thread.currentThread().interrupt();
         if (siguiente != null) {
             estaOcupado = true; // <-- Ocupa el disco (Activa GUARDIA #2)
             System.out.println("        FileSystem: OCUPADO. Procesando (FIFO): " + siguiente.getFileName());
-            this.createFile(siguiente); // Llama al método que duerme
+            
+            // Route to the correct operation based on operation type
+            FileData data = siguiente.getFileData();
+            switch (data.getOperationType()) {
+                case CREATE:
+                    this.createFile(siguiente);
+                    break;
+                case READ:
+                    this.readFile(siguiente);
+                    break;
+                case UPDATE:
+                    this.updateFile(siguiente);
+                    break;
+                case DELETE:
+                    this.deleteFile(siguiente);
+                    break;
+            }
         }
         
 //        if (diskScheduler.hayPeticiones()) {
@@ -196,6 +212,136 @@ Thread.currentThread().interrupt();
             }
         }
         return null; // Bloque libre
+    }
+    
+    public void deleteFile(Petition peticionDeLaCola) {
+        new Thread(() -> {
+            try {
+                FileData data = peticionDeLaCola.getFileData();
+                String nombre = data.getFileName();
+                
+                // Buscar el archivo
+                Archivo archivo = buscarArchivo(nombre);
+                
+                if (archivo == null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe.");
+                    data.setErrorMessage("El archivo '" + nombre + "' no existe.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
+                
+                // Simular tiempo de operación
+                Thread.sleep(1000);
+                
+                // Liberar los bloques del archivo
+                Lista<Integer> bloquesALiberar = archivo.getBloquesAsignados();
+                if (bloquesALiberar != null && bloquesALiberar.size() > 0) {
+                    disk.liberarBloques(bloquesALiberar);
+                }
+                
+                // Eliminar el archivo de la tabla
+                tablaDeArchivos.remove(archivo);
+                System.out.println("FileSystem: Archivo '" + nombre + "' ELIMINADO con éxito.");
+                
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } finally {
+                peticionDeLaCola.getFileData().setIsProcessed(true);
+                estaOcupado = false;
+                System.out.println("FileSystem: LIBERADO (por este hilo).");
+            }
+        }).start();
+    }
+    
+    public void readFile(Petition peticionDeLaCola) {
+        new Thread(() -> {
+            try {
+                FileData data = peticionDeLaCola.getFileData();
+                String nombre = data.getFileName();
+                
+                // Buscar el archivo
+                Archivo archivo = buscarArchivo(nombre);
+                
+                if (archivo == null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe.");
+                    data.setErrorMessage("El archivo '" + nombre + "' no existe.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
+                
+                // Simular tiempo de lectura
+                Thread.sleep(1500);
+                
+                System.out.println("FileSystem: Archivo '" + nombre + "' LEÍDO (solo lectura, sin modificaciones).");
+                
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } finally {
+                peticionDeLaCola.getFileData().setIsProcessed(true);
+                estaOcupado = false;
+                System.out.println("FileSystem: LIBERADO (por este hilo).");
+            }
+        }).start();
+    }
+    
+    public void updateFile(Petition peticionDeLaCola) {
+        new Thread(() -> {
+            try {
+                FileData data = peticionDeLaCola.getFileData();
+                String nombreViejo = data.getFileName();
+                String nombreNuevo = data.getNewFileName();
+                
+                // Validar que el nuevo nombre no esté vacío
+                if (nombreNuevo == null || nombreNuevo.isEmpty()) {
+                    System.out.println("FileSystem: Error, el nuevo nombre no puede estar vacío.");
+                    data.setErrorMessage("El nuevo nombre no puede estar vacío.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
+                
+                // Buscar el archivo
+                Archivo archivo = buscarArchivo(nombreViejo);
+                
+                if (archivo == null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombreViejo + "' no existe.");
+                    data.setErrorMessage("El archivo '" + nombreViejo + "' no existe.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
+                
+                // Validar que el nuevo nombre no exista ya
+                if (buscarArchivo(nombreNuevo) != null) {
+                    System.out.println("FileSystem: Error, el archivo '" + nombreNuevo + "' ya existe.");
+                    data.setErrorMessage("El archivo '" + nombreNuevo + "' ya existe.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
+                
+                // Simular tiempo de operación
+                Thread.sleep(1000);
+                
+                // Actualizar el nombre del archivo
+                archivo.setNombre(nombreNuevo);
+                System.out.println("FileSystem: Archivo '" + nombreViejo + "' RENOMBRADO a '" + nombreNuevo + "' con éxito.");
+                
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } finally {
+                peticionDeLaCola.getFileData().setIsProcessed(true);
+                estaOcupado = false;
+                System.out.println("FileSystem: LIBERADO (por este hilo).");
+            }
+        }).start();
     }
     
     
