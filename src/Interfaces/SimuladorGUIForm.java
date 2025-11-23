@@ -69,15 +69,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private void configurarComponentesCRUD() {
         // Crear y configurar el combo box de operaciones
         comboOperacion = new javax.swing.JComboBox<>(FileData.OperationType.values());
-        comboOperacion.setSelectedItem(FileData.OperationType.CREATE);
-        comboOperacion.addActionListener((ActionEvent e) -> {
+        comboOperacion1.setSelectedItem(FileData.OperationType.CREATE);
+        comboOperacion1.addActionListener((ActionEvent e) -> {
             actualizarInputsSegunOperacion();
         });
-        getContentPane().add(comboOperacion, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 120, -1));
+//        getContentPane().add(comboOperacion, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 120, -1));
         
         // Crear label para operación
-        jLabelOperacion = new javax.swing.JLabel("Operación:");
-        getContentPane().add(jLabelOperacion, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
+//        jLabelOperacion = new javax.swing.JLabel("Operación:");
+//        getContentPane().add(jLabelOperacion, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
         
         // Crear label y campo para nuevo nombre (UPDATE)
         jLabel3 = new javax.swing.JLabel("Nuevo Nombre");
@@ -266,7 +266,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }
     
     private void actualizarInputsSegunOperacion() {
-        FileData.OperationType op = (FileData.OperationType) comboOperacion.getSelectedItem();
+        FileData.OperationType op = (FileData.OperationType) comboOperacion1.getSelectedItem();
         
         // Ocultar todos primero
         jLabel1.setVisible(false);
@@ -333,23 +333,25 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         panelIzq = new javax.swing.JPanel();
         miPanelTAA = new Interfaces.PanelTAAForm();
         miPanelDisco = new Interfaces.PanelDiscoForm();
+        comboOperacion1 = new javax.swing.JComboBox<>();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Nombre");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, -1, -1));
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 90, -1, -1));
 
         jLabel2.setText("Tamano");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 160, -1, -1));
-        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 80, -1));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 170, -1, -1));
+        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 130, 80, -1));
 
         txtCrearTamano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCrearTamanoActionPerformed(evt);
             }
         });
-        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 200, 80, -1));
+        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 210, 80, -1));
 
         btnCrear.setText("CREAR");
         btnCrear.addActionListener(new java.awt.event.ActionListener() {
@@ -357,13 +359,24 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 280, -1, -1));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 260, -1, -1));
 
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 40, 500, 310));
 
         getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 10, 830, 670));
         getContentPane().add(miPanelDisco, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 280, 650, 380));
+
+        comboOperacion1.setModel(new javax.swing.DefaultComboBoxModel<>(FileData.OperationType.values()));
+        comboOperacion1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboOperacion1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 50, 90, -1));
+
+        jLabel4.setText("Operacion");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 20, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -377,7 +390,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 
     private void btnCrearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearActionPerformed
         try {
-            FileData.OperationType op = (FileData.OperationType) comboOperacion.getSelectedItem();
+            FileData.OperationType op = (FileData.OperationType) comboOperacion1.getSelectedItem();
             String nombre = txtCrearNombre.getText();
             
             if (nombre.isEmpty()) {
@@ -437,6 +450,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "El tamaño debe ser un número entero.");
         }
     }//GEN-LAST:event_btnCrearActionPerformed
+
+    private void comboOperacion1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboOperacion1ActionPerformed
+            System.out.println("prueba");
+    }//GEN-LAST:event_comboOperacion1ActionPerformed
     
 
     /**
@@ -476,8 +493,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCrear;
+    private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel4;
     private Interfaces.PanelDiscoForm miPanelDisco;
     private Interfaces.PanelTAAForm miPanelTAA;
     private javax.swing.JPanel panelIzq;
