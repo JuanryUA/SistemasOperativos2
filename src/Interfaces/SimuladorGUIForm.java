@@ -417,13 +417,44 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         labelNuevoNombre.setText("Nuevo Nombre");
         getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, -1, 20));
 
+        jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel9.setText("Archivo");
+        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
+        
+        // Input para indicar en qué directorio va el archivo a crear (en la sección de Archivo)
+        jLabel11 = new javax.swing.JLabel("Ruta Directorio:");
+        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 260, -1, -1));
+        
+        txtRutaDirectorio = new javax.swing.JTextField();
+        txtRutaDirectorio.setText("/");
+        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 260, 110, -1));
+
         jLabel7.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel7.setText("Directorio");
         getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 310, -1, -1));
 
-        jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel9.setText("Archivo");
-        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
+        // Sección para crear/eliminar directorios
+        jLabel12 = new javax.swing.JLabel("Nombre Directorio:");
+        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 340, -1, -1));
+        
+        txtNombreDirectorio = new javax.swing.JTextField();
+        getContentPane().add(txtNombreDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 360, 120, -1));
+        
+        btnCrearDirectorio = new javax.swing.JButton("Crear Dir");
+        btnCrearDirectorio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCrearDirectorioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 360, 70, -1));
+        
+        btnEliminarDirectorio = new javax.swing.JButton("Eliminar Dir");
+        btnEliminarDirectorio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarDirectorioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 390, 200, -1));
 
         directoryTree.setModel(new javax.swing.tree.DefaultTreeModel(null));
         treeDirectoryScrollPane.setViewportView(directoryTree);
