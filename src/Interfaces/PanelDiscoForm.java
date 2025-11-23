@@ -86,6 +86,8 @@ public class PanelDiscoForm extends javax.swing.JPanel {
                 bloqueVisual.setBackground(COLOR_LIBRE);
                 bloqueVisual.setText(String.valueOf(i)); // Mostrar número de bloque
                 bloqueVisual.setToolTipText("Bloque " + i + " - Libre");
+                bloqueVisual.setForeground(Color.BLACK);
+                bloqueVisual.setFont(new Font(bloqueVisual.getFont().getName(), Font.BOLD, 12));
             } else {
                 bloqueVisual.setBackground(COLOR_OCUPADO);
                 // Obtener el nombre del archivo que ocupa este bloque
