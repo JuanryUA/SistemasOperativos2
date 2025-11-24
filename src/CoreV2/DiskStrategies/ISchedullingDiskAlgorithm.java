@@ -13,10 +13,11 @@ import CoreV2.Petition;
  */
 
 public interface ISchedullingDiskAlgorithm {
-    public enum SchedulingDiskType { FIFO };
+    public enum SchedulingDiskType { FIFO, SSTF, SCAN, C_SCAN };
     
     Petition obtenerSiguientePeticion();
     SchedulingDiskType getSchedulingDiskType();
     boolean hayPeticiones();
     void setColaPeticiones(Cola cola);
+    void setCurrentHeadPosition(int position);
 }

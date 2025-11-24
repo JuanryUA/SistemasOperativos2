@@ -79,7 +79,8 @@ Thread.currentThread().interrupt();
         // 3. Si sacamos una petición, haz el trabajo
         if (siguiente != null) {
             estaOcupado = true; // <-- Ocupa el disco (Activa GUARDIA #2)
-            System.out.println("        FileSystem: OCUPADO. Procesando (FIFO): " + siguiente.getFileName());
+            String algorithmName = diskScheduler.getAlgoritmo().getSchedulingDiskType().name();
+            System.out.println("        FileSystem: OCUPADO. Procesando (" + algorithmName + "): " + siguiente.getFileName());
             
             // Route to the correct operation based on operation type
             FileData data = siguiente.getFileData();

@@ -147,5 +147,26 @@ public class Cola {
         return p;
     }
     
+    public boolean remove(Petition peticion) {
+        if (frente == null) return false;
+
+        if (frente.getPeticion() == peticion) {
+            pollPeticion();
+            return true;
+        }
+
+        Nodo actual = frente;
+        while (actual.getSiguiente() != null) {
+            if (actual.getSiguiente().getPeticion() == peticion) {
+                actual.setSiguiente(actual.getSiguiente().getSiguiente());
+                if (actual.getSiguiente() == null) fin = actual;
+                size--;
+                return true;
+            }
+            actual = actual.getSiguiente();
+        }
+        return false; // no se encontró
+    }
+    
 }
 

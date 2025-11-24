@@ -26,6 +26,11 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import CoreV2.Directorio;
 import CoreV2.Archivo;
+import CoreV2.DiskStrategies.ISchedullingDiskAlgorithm;
+import CoreV2.DiskStrategies.FIFODisk;
+import CoreV2.DiskStrategies.SSTFDisk;
+import CoreV2.DiskStrategies.SCANDisk;
+import CoreV2.DiskStrategies.CSCANDisk;
 
 /**
  *
@@ -81,6 +86,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         // Configurar componentes adicionales
         configurarComponentesCRUD();
         configurarJTree();
+        configurarDiskSchedulerCombo();
     }
     
     private void configurarJTree() {
@@ -449,6 +455,66 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         // Inicializar visibilidad de inputs
         actualizarInputsSegunOperacion();
     }
+    
+    private void configurarDiskSchedulerCombo() {
+        // Configure existing diskSchedulingCombo combobox
+        if (diskSchedulingCombo1 == null) {
+            return; // ComboBox doesn't exist yet
+        }
+        
+        // Set model with disk scheduling algorithm types
+        diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
+        
+        // Set initial value based on current algorithm or default to FIFO
+        ISchedullingDiskAlgorithm.SchedulingDiskType initialType = ISchedullingDiskAlgorithm.SchedulingDiskType.FIFO;
+        if (fileSystem != null && fileSystem.getDiskScheduler() != null) {
+            ISchedullingDiskAlgorithm algoritmoActual = fileSystem.getDiskScheduler().getAlgoritmo();
+            if (algoritmoActual != null) {
+                initialType = algoritmoActual.getSchedulingDiskType();
+            }
+        }
+        diskSchedulingCombo1.setSelectedItem(initialType);
+        
+        // Add action listener to change algorithm when selected
+        diskSchedulingCombo1.addActionListener((ActionEvent e) -> {
+            cambiarAlgoritmoDisk();
+        });
+    }
+    
+    private void cambiarAlgoritmoDisk() {
+        if (fileSystem == null || fileSystem.getDiskScheduler() == null || diskSchedulingCombo1 == null) {
+            return;
+        }
+        
+        ISchedullingDiskAlgorithm.SchedulingDiskType selected = 
+            (ISchedullingDiskAlgorithm.SchedulingDiskType) diskSchedulingCombo1.getSelectedItem();
+        
+        if (selected == null) {
+            return;
+        }
+        
+        ISchedullingDiskAlgorithm nuevoAlgoritmo = null;
+        
+        switch (selected) {
+            case FIFO:
+                nuevoAlgoritmo = new FIFODisk();
+                break;
+            case SSTF:
+                nuevoAlgoritmo = new SSTFDisk();
+                break;
+            case SCAN:
+                nuevoAlgoritmo = new SCANDisk();
+                break;
+            case C_SCAN:
+                nuevoAlgoritmo = new CSCANDisk();
+                break;
+        }
+        
+        if (nuevoAlgoritmo != null) {
+            fileSystem.getDiskScheduler().setAlgoritmoDisk(nuevoAlgoritmo);
+            System.out.println("Algoritmo de disco cambiado a: " + selected.name());
+        }
+    }
 
     private void iniciarTimer() { 
         // Refrescar cada 100ms
@@ -483,6 +549,28 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         // Actualizar JTree
         if (jTreeDirectorio != null && fileSystem != null) {
             actualizarJTree();
+        }
+        
+        // Actualizar combobox de algoritmo de disco para reflejar el algoritmo actual
+        if (diskSchedulingCombo1 != null && fileSystem != null && fileSystem.getDiskScheduler() != null) {
+            ISchedullingDiskAlgorithm algoritmoActual = fileSystem.getDiskScheduler().getAlgoritmo();
+            if (algoritmoActual != null) {
+                ISchedullingDiskAlgorithm.SchedulingDiskType tipoActual = algoritmoActual.getSchedulingDiskType();
+                // Solo actualizar si es diferente para evitar eventos infinitos
+                Object selected = diskSchedulingCombo1.getSelectedItem();
+                if (selected == null || !selected.equals(tipoActual)) {
+                    // Temporarily remove listener to avoid triggering change event
+                    java.awt.event.ActionListener[] listeners = diskSchedulingCombo1.getActionListeners();
+                    for (java.awt.event.ActionListener listener : listeners) {
+                        diskSchedulingCombo1.removeActionListener(listener);
+                    }
+                    diskSchedulingCombo1.setSelectedItem(tipoActual);
+                    // Re-add listeners
+                    for (java.awt.event.ActionListener listener : listeners) {
+                        diskSchedulingCombo1.addActionListener(listener);
+                    }
+                }
+            }
         }
     }
     
@@ -698,23 +786,25 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         btnCrearDirectorio1 = new javax.swing.JButton();
         btnEliminarDirectorio1 = new javax.swing.JButton();
+        diskSchedulingCombo1 = new javax.swing.JComboBox<>();
+        jLabel11 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Nombre");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 130, -1, -1));
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 120, -1, -1));
 
         jLabel2.setText("Tamaño");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 180, -1, -1));
-        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 130, 110, -1));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 160, -1, -1));
+        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 120, 110, -1));
 
         txtCrearTamano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCrearTamanoActionPerformed(evt);
             }
         });
-        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 180, 110, -1));
+        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 110, -1));
 
         btnCrear.setText("CREAR");
         btnCrear.addActionListener(new java.awt.event.ActionListener() {
@@ -722,7 +812,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 230, 110, 30));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 250, 160, 20));
 
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 200, 490, 110));
@@ -752,7 +842,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel8.setText("Disco Secundario (SD)");
         panelIzq.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 320, -1, -1));
 
-        getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(740, 0, 520, 690));
+        getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 0, 520, 690));
 
         comboOperacion1.setModel(new javax.swing.DefaultComboBoxModel<>(FileData.OperationType.values()));
         comboOperacion1.addActionListener(new java.awt.event.ActionListener() {
@@ -760,32 +850,32 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 comboOperacion1ActionPerformed(evt);
             }
         });
-        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 110, 30));
+        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 60, 110, 30));
 
         jLabel4.setText("Operación");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 90, -1, -1));
-        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 180, 110, -1));
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 70, -1, -1));
+        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 110, -1));
 
         labelNuevoNombre.setText("Nuevo Nombre");
-        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, -1, 20));
+        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, -1, 20));
 
         jLabel7.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel7.setText("Directorio");
-        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 310, -1, -1));
+        jLabel7.setText("Política de Planificación");
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 470, -1, -1));
 
         jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel9.setText("Archivo");
-        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
+        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 20, -1, -1));
 
         txtRutaDirectorio1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtRutaDirectorio1ActionPerformed(evt);
             }
         });
-        getContentPane().add(txtRutaDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 380, 120, -1));
+        getContentPane().add(txtRutaDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 200, 110, -1));
 
-        jLabel10.setText("Ruta:");
-        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 380, 30, 20));
+        jLabel10.setText("Ruta");
+        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 200, 30, 20));
 
         btnCrearDirectorio1.setText("Crear Directorio");
         btnCrearDirectorio1.addActionListener(new java.awt.event.ActionListener() {
@@ -793,10 +883,17 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearDirectorio1ActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 420, 160, -1));
+        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 360, 160, -1));
 
         btnEliminarDirectorio1.setText("Eliminar Directorio");
-        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 460, 160, -1));
+        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 410, 160, -1));
+
+        diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
+        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 510, 150, 30));
+
+        jLabel11.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel11.setText("Directorio");
+        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 310, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -930,8 +1027,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JButton btnCrearDirectorio1;
     private javax.swing.JButton btnEliminarDirectorio1;
     private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
+    private javax.swing.JComboBox<ISchedullingDiskAlgorithm.SchedulingDiskType> diskSchedulingCombo1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -959,4 +1058,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JTable tablaColaProcesos;
     private javax.swing.JScrollPane jScrollPaneCola;
     private javax.swing.JLabel jLabelCola;
+    // diskSchedulingCombo should be declared in the form (GEN-BEGIN:variables section)
+    // If it doesn't exist yet, add it to the form file or declare it here:
+    private javax.swing.JComboBox<ISchedullingDiskAlgorithm.SchedulingDiskType> diskSchedulingCombo;
 }
