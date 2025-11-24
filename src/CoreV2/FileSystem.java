@@ -39,10 +39,12 @@ public class FileSystem {
             // El hilo (P1, P2, P3) pide permiso para usar el disco.
             // P1 entra. P2 y P3 se quedan aquí esperando en fila.
             mutexCola.acquire();
+            System.out.println("[FS] El FileSystem ha recibido al DMA del proceso " + fileData.getProcessName());
             System.out.println("        FileSystem: OCUPADO por " + fileData.getFileName());
 
             Petition peticionNueva = new Petition( fileData);
             this.colaPeticiones.add(peticionNueva);
+            System.out.println("[COLA] Peticion de " + fileData.getProcessName() + " (" + fileData.getFileName() + ") entro a la cola.");
 
 
             } catch (InterruptedException ex) {
@@ -68,7 +70,7 @@ Thread.currentThread().interrupt();
         try {
             mutexCola.acquire();
             if (diskScheduler.hayPeticiones()) {
-                // ¡FIFO saca la petición!
+                // ¡FIFO saca la peticion!
                 siguiente = diskScheduler.obtenerSiguientePeticion(); 
             }
         } catch (InterruptedException e) { /*...*/ } 
@@ -171,6 +173,7 @@ Thread.currentThread().interrupt();
                     
                     System.out.println("FileSystem: Archivo '" + nombre + "' CREADO con éxito en '" + ruta + "'.");
                     System.out.println("            TAMANO ARCHIVOOOOOL " + nuevoArchivo.getTamano());
+                    System.out.println("[FS] Archivo creado con éxito");
                 }
                                 
             } catch (InterruptedException ex) { /*...*/ } 

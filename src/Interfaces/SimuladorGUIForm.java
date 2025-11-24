@@ -31,6 +31,15 @@ import CoreV2.DiskStrategies.FIFODisk;
 import CoreV2.DiskStrategies.SSTFDisk;
 import CoreV2.DiskStrategies.SCANDisk;
 import CoreV2.DiskStrategies.CSCANDisk;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -68,6 +77,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         this.so = so; 
         
         initComponents(); // Inicia lo visual
+      
+        java.io.PrintStream originalOut = System.out;
+        
+       
+        java.io.PrintStream printStream = new java.io.PrintStream(new CustomOutputStream(txtLog, lblTic, originalOut));       
+        
+        System.setOut(printStream); // Redirige la salida estándar (System.out.println)
+        System.setErr(printStream); // Opcional: Redirige también los errores (System.err.println)
         
         configurarVentana(); // Configuración extra
         iniciarTimer();      // Arranca el refresco automático
@@ -596,9 +613,12 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         String procesoId = p.getNombre();
                         
                         // Solo verificar operaciones RUD (no CREATE) que estén procesadas
-                        if (data.getOperationType() != FileData.OperationType.CREATE && 
-                            data.isIsProcessed() && data.hasError()) {
-                            String key = procesoId + "_" + data.getOperationType() + "_" + data.getFileName();
+                        
+                        //VERO TE MODIFIQUE ESTO
+                        //if (data.getOperationType() != FileData.OperationType.CREATE && 
+                        //    data.isIsProcessed() && data.hasError()) {
+                        if (data.isIsProcessed() && data.hasError()) {                       
+                        String key = procesoId + "_" + data.getOperationType() + "_" + data.getFileName();
                             // Solo mostrar una vez por proceso y operación
                             if (!procesosProcesados.contains(key)) {
                                 procesosProcesados.add(key);
@@ -630,8 +650,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         String procesoId = data.getProcessName();
                         
                         // Solo verificar operaciones RUD (no CREATE) que estén procesadas
-                        if (data.getOperationType() != FileData.OperationType.CREATE && 
-                            data.isIsProcessed() && data.hasError()) {
+                        
+                        //VERO TE MODIFIQUE ESTO 
+                        //if (data.getOperationType() != FileData.OperationType.CREATE && 
+                        //    data.isIsProcessed() && data.hasError()) {
+                        if (data.isIsProcessed() && data.hasError()) {
                             String key = procesoId + "_" + data.getOperationType() + "_" + data.getFileName();
                             if (!procesosProcesados.contains(key)) {
                                 procesosProcesados.add(key);
@@ -780,7 +803,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         txtNuevoNombre1 = new javax.swing.JTextField();
         labelNuevoNombre = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
+        lblTic = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         txtRutaDirectorio1 = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
@@ -788,6 +811,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         btnEliminarDirectorio1 = new javax.swing.JButton();
         diskSchedulingCombo1 = new javax.swing.JComboBox<>();
         jLabel11 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtLog = new javax.swing.JTextArea();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        btnCargarTXT = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -859,9 +887,9 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         labelNuevoNombre.setText("Nuevo Nombre");
         getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, -1, 20));
 
-        jLabel7.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
-        jLabel7.setText("Política de Planificación");
-        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 470, -1, -1));
+        lblTic.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        lblTic.setText("Tic: 0");
+        getContentPane().add(lblTic, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 520, -1, -1));
 
         jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel9.setText("Archivo");
@@ -889,11 +917,40 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 410, 160, -1));
 
         diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
-        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 510, 150, 30));
+        diskSchedulingCombo1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                diskSchedulingCombo1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 480, 150, 30));
 
         jLabel11.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel11.setText("Directorio");
         getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 310, -1, -1));
+
+        txtLog.setEditable(false);
+        txtLog.setColumns(20);
+        txtLog.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
+        txtLog.setRows(5);
+        jScrollPane1.setViewportView(txtLog);
+
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 550, 500, 110));
+
+        jLabel12.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel12.setText("Política de Planificación");
+        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 450, -1, -1));
+
+        jLabel13.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel13.setText("Log");
+        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 520, -1, -1));
+
+        btnCargarTXT.setText("Cargar TXT");
+        btnCargarTXT.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCargarTXTActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 460, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -985,8 +1042,162 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private void btnCrearDirectorio1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearDirectorio1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnCrearDirectorio1ActionPerformed
-    
 
+    private void diskSchedulingCombo1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_diskSchedulingCombo1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_diskSchedulingCombo1ActionPerformed
+
+    private void btnCargarTXTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCargarTXTActionPerformed
+        // TODO add your handling code here:
+        cargarPeticionesDesdeTXT();
+    }//GEN-LAST:event_btnCargarTXTActionPerformed
+    
+// --- CLASE INTERNA MEJORADA PARA FILTRAR SALIDA ---
+// --- CLASE INTERNA PARA REDIRIGIR LA CONSOLA (VERSIÓN FINAL 3 PARÁMETROS) ---
+    private class CustomOutputStream extends java.io.OutputStream {
+        private javax.swing.JTextArea textArea;
+        private javax.swing.JLabel labelTic;
+        private java.io.PrintStream console; // <-- ¡Esto es lo que faltaba en la definición!
+        private StringBuilder sb = new StringBuilder();
+
+        // Constructor actualizado para recibir 3 parámetros
+        public CustomOutputStream(javax.swing.JTextArea textArea, javax.swing.JLabel labelTic, java.io.PrintStream console) {
+            this.textArea = textArea;
+            this.labelTic = labelTic;
+            this.console = console; 
+        }
+
+        @Override
+                public void write(int b) {
+                    // 1. Escribir en la consola de NetBeans (SIEMPRE)
+                    if (console != null) {
+                        console.write(b);
+                    }
+
+                    // 2. Acumular para la GUI
+                    sb.append((char) b);
+
+                    if (b == '\n') {
+                        final String texto = sb.toString();
+                        sb.setLength(0); 
+
+                        javax.swing.SwingUtilities.invokeLater(() -> {
+                            // --- FILTRO DE MENSAJES PARA LA GUI ---
+
+                            // A. El reloj va a su etiqueta
+                            if (texto.contains("Tic Global:")) {
+                                labelTic.setText(texto.trim()); 
+                            } 
+                            // B. Solo mostramos en el cuadro lo que el usuario pidió
+                            else if (texto.contains("[DMA]") || texto.contains("[FS]") || texto.contains("[COLA]")) {
+                                textArea.append(texto);
+                            }
+                            // C. Todo lo demás (Debug, CPU, etc.) se ignora en la GUI (pero sale en consola)
+                        });
+                    }
+                }
+    }
+    
+    private void cargarPeticionesDesdeTXT() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Seleccionar script de pruebas");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de Texto (*.txt)", "txt"));
+
+        int selection = fileChooser.showOpenDialog(this);
+        
+        if (selection == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                int count = 0;
+                
+                while ((line = br.readLine()) != null) {
+                    // Ignorar líneas vacías o comentarios
+                    if (line.trim().isEmpty() || line.startsWith("#")) continue;
+                    
+                    // Separar por comas
+                    String[] parts = line.split(",");
+                    
+                    // Limpiar espacios en blanco alrededor
+                    for (int i = 0; i < parts.length; i++) {
+                        parts[i] = parts[i].trim();
+                    }
+                    
+                    // Mínimo necesitamos OPERACION y NOMBRE
+                    if (parts.length < 2) continue;
+                    
+                    String operacion = parts[0].toUpperCase();
+                    String nombre = parts[1];
+                    
+                    // Procesar según operación (Usando la misma lógica que tus botones manuales)
+                    switch (operacion) {
+                        case "CREATE":
+                            if (parts.length >= 3) {
+                                try {
+                                    int tamano = Integer.parseInt(parts[2]);
+                                    String ruta = (parts.length >= 4) ? parts[3] : "root";
+                                    
+                                    System.out.println("[TXT] Cargando CREATE: " + nombre + " (" + tamano + "kb) en " + ruta);
+                                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, ruta);
+                                    count++;
+                                } catch (NumberFormatException e) {
+                                    System.out.println("[TXT] Error en tamaño para línea: " + line);
+                                }
+                            }
+                            break;
+                            
+                        case "READ":
+                            {
+                                String ruta = (parts.length >= 3) ? parts[2] : "root";
+                                System.out.println("[TXT] Cargando READ: " + nombre + " en " + ruta);
+                                so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta);
+                                count++;
+                            }
+                            break;
+                            
+                        case "UPDATE":
+                            if (parts.length >= 3) {
+                                String nuevoNombre = parts[2];
+                                String ruta = (parts.length >= 4) ? parts[3] : "root";
+                                
+                                System.out.println("[TXT] Cargando UPDATE: " + nombre + " -> " + nuevoNombre + " en " + ruta);
+                                so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre, ruta);
+                                count++;
+                            }
+                            break;
+                            
+                        case "DELETE":
+                            {
+                                String ruta = (parts.length >= 3) ? parts[2] : "root";
+                                System.out.println("[TXT] Cargando DELETE: " + nombre + " en " + ruta);
+                                so.crearProcesoIO(FileData.OperationType.DELETE, nombre, ruta);
+                                count++;
+                            }
+                            break;
+                            
+                        default:
+                            System.out.println("[TXT] Operación desconocida: " + operacion);
+                    }
+                    
+                    // Pequeña pausa para no saturar instantáneamente la entrada (opcional)
+                    // Thread.sleep(50); 
+                }
+                
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                    "Se cargaron " + count + " procesos exitosamente.", 
+                    "Carga Completa", 
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                    "Error al leer el archivo: " + e.getMessage(), 
+                    "Error", 
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -1023,6 +1234,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCargarTXT;
     private javax.swing.JButton btnCrear;
     private javax.swing.JButton btnCrearDirectorio1;
     private javax.swing.JButton btnEliminarDirectorio1;
@@ -1031,21 +1243,25 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPaneCola1;
     private javax.swing.JLabel labelNuevoNombre;
+    private javax.swing.JLabel lblTic;
     private Interfaces.PanelDiscoForm miPanelDisco;
     private Interfaces.PanelTAAForm miPanelTAA;
     private javax.swing.JPanel panelIzq;
     private javax.swing.JTable tablaColaProcesos1;
     private javax.swing.JTextField txtCrearNombre;
     private javax.swing.JTextField txtCrearTamano;
+    private javax.swing.JTextArea txtLog;
     private javax.swing.JTextField txtNuevoNombre1;
     private javax.swing.JTextField txtRutaDirectorio1;
     // End of variables declaration//GEN-END:variables

@@ -25,8 +25,10 @@ public class DMA {
 
     public void ejecutarES(Proceso p, FileSystem filesystem, Runnable callback) {
         new Thread(() -> {
-            try { 
-                System.out.println("ENTRO AL DMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            try {
+                System.out.println("[DMA] Entró al DMA");
+                System.out.println("[DMA] Transportando datos del proceso " + p.getNombre() + " para crear peticion...");
+                //System.out.println("ENTRO AL DMA");
                 FileData fileData = p.getFileData();
                 System.out.println("        DMA: Hilo de " + p.getNombre() + " intentando acceder a FileSystem...");
                 filesystem.agregarPeticion(fileData);
@@ -49,7 +51,7 @@ public class DMA {
                 
                 // vvv ¡USA LA VARIABLE LOCAL 'callback'! vvv
                 if (callback != null) {
-                    System.out.println("SALIO DEL DMAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    System.out.println("SALIO DEL DMA");
                     callback.run(); // ¡Ahora llama al callback correcto!
                 }
 
