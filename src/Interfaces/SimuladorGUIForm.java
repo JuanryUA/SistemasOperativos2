@@ -190,13 +190,13 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         panelInfo.add(labelInfoTamano);
         
         // Add components to GUI (using absolute layout)
-        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 80, 300, 400));
+        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 83, 300, 400));
 //        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
 //        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
 //        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
 //        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 480, 130, 30));
-        getContentPane().add(panelInfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 450, 300, 50));
-        getContentPane().add(new javax.swing.JLabel("<html><span style='font-size:10px; font-family:Tahoma'>Estructura de Directorios</span></html>"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 20, -1, -1));
+        getContentPane().add(panelInfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 483, 300, 50));
+        getContentPane().add(new javax.swing.JLabel("<html><span style='font-size:10px; font-family:Tahoma'>Estructura de Directorios</span></html>"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 55, -1, -1));
     }
     
     private void crearDirectorio() {
@@ -1005,7 +1005,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 
         jLabelModo = new javax.swing.JLabel();
         jLabelModo.setText("Modo");
-        getContentPane().add(jLabelModo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 50, -1, -1));
+        getContentPane().add(jLabelModo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 20, -1, -1));
 
         comboModoUsuario = new javax.swing.JComboBox<>();
         comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
@@ -1015,7 +1015,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 comboModoUsuarioActionPerformed(evt);
             }
         });
-        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 50, 120, 20));
+        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 20, 120, 20));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
