@@ -821,18 +821,18 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setText("Nombre");
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 120, -1, -1));
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 110, -1, -1));
 
         jLabel2.setText("Tamaño");
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 160, -1, -1));
-        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 120, 110, -1));
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 150, -1, -1));
+        getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 110, 110, -1));
 
         txtCrearTamano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCrearTamanoActionPerformed(evt);
             }
         });
-        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 110, -1));
+        getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 150, 110, -1));
 
         btnCrear.setText("CREAR");
         btnCrear.addActionListener(new java.awt.event.ActionListener() {
@@ -840,7 +840,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 250, 160, 20));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 230, 120, 20));
 
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 200, 490, 110));
@@ -878,32 +878,32 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 comboOperacion1ActionPerformed(evt);
             }
         });
-        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 60, 110, 30));
+        getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 50, 110, 30));
 
         jLabel4.setText("Operación");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 70, -1, -1));
-        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 110, -1));
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 60, -1, -1));
+        getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 150, 110, -1));
 
         labelNuevoNombre.setText("Nuevo Nombre");
-        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, -1, 20));
+        getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, -1, 20));
 
         lblTic.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         lblTic.setText("Tic: 0");
-        getContentPane().add(lblTic, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 520, -1, -1));
+        getContentPane().add(lblTic, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 550, -1, -1));
 
         jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel9.setText("Archivo");
-        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 20, -1, -1));
+        getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 10, -1, -1));
 
         txtRutaDirectorio1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtRutaDirectorio1ActionPerformed(evt);
             }
         });
-        getContentPane().add(txtRutaDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 200, 110, -1));
+        getContentPane().add(txtRutaDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 190, 110, -1));
 
         jLabel10.setText("Ruta");
-        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 200, 30, 20));
+        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 190, 30, 20));
 
         btnCrearDirectorio1.setText("Crear Directorio");
         btnCrearDirectorio1.addActionListener(new java.awt.event.ActionListener() {
@@ -911,10 +911,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearDirectorio1ActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 360, 160, -1));
+        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 360, 120, 20));
 
         btnEliminarDirectorio1.setText("Eliminar Directorio");
-        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 410, 160, -1));
+        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 400, 120, -1));
 
         diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
         diskSchedulingCombo1.addActionListener(new java.awt.event.ActionListener() {
@@ -922,11 +922,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 diskSchedulingCombo1ActionPerformed(evt);
             }
         });
-        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 480, 150, 30));
+        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 500, 120, 20));
 
         jLabel11.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel11.setText("Directorio");
-        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 310, -1, -1));
+        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 320, -1, -1));
 
         txtLog.setEditable(false);
         txtLog.setColumns(20);
@@ -934,15 +934,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         txtLog.setRows(5);
         jScrollPane1.setViewportView(txtLog);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 550, 500, 110));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 580, 530, 110));
 
         jLabel12.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel12.setText("Política de Planificación");
-        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 450, -1, -1));
+        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 460, -1, -1));
 
         jLabel13.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel13.setText("Log");
-        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 520, -1, -1));
+        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 550, -1, -1));
 
         btnCargarTXT.setText("Cargar TXT");
         btnCargarTXT.addActionListener(new java.awt.event.ActionListener() {
@@ -950,7 +950,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCargarTXTActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 460, -1, -1));
+        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 270, 120, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
