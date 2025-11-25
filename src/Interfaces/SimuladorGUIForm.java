@@ -774,6 +774,73 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         }
     }
     
+    /**
+     * Valida si se puede leer un archivo (existe y tiene permisos)
+     * @param nombre Nombre del archivo
+     * @param ruta Ruta del directorio
+     * @param modoUsuario Modo de usuario ("Administrador" o "Usuario")
+     * @return null si puede leer, mensaje de error si no puede
+     */
+    private String validarLecturaArchivo(String nombre, String ruta, String modoUsuario) {
+        if (fileSystem == null) {
+            return "Error: No hay conexión con el FileSystem";
+        }
+        
+        // Buscar el directorio
+        CoreV2.Directorio directorio = buscarDirectorioPorRuta(ruta);
+        if (directorio == null) {
+            return "El directorio '" + ruta + "' no existe.";
+        }
+        
+        // Buscar el archivo en el directorio
+        CoreV2.Archivo archivo = directorio.buscarArchivo(nombre);
+        if (archivo == null) {
+            return "El archivo '" + nombre + "' no existe en '" + ruta + "'.";
+        }
+        
+        // Validar permisos: Usuario solo puede leer archivos públicos
+        if ("Usuario".equals(modoUsuario) && "privado".equals(archivo.getTipoArchivo())) {
+            return "Acceso denegado: No tiene permisos para leer archivos privados del sistema.";
+        }
+        
+        // Si pasa todas las validaciones, puede leer
+        return null;
+    }
+    
+    private void mostrarPopupLeyendo() {
+        // Ejecutar en el hilo de Swing para evitar bloqueos
+        SwingUtilities.invokeLater(() -> {
+            // Crear un JOptionPane personalizado pero no modal
+            JOptionPane optionPane = new JOptionPane(
+                "Leyendo archivo...",
+                JOptionPane.INFORMATION_MESSAGE,
+                JOptionPane.DEFAULT_OPTION,
+                null, // null para usar el icono por defecto
+                new Object[]{}, // Sin botones
+                null
+            );
+            
+            // Crear el diálogo desde el JOptionPane
+            JDialog dialog = optionPane.createDialog(this, "");
+            dialog.setModal(false); // No bloquear la interfaz
+            dialog.setAlwaysOnTop(true);
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            
+            // Mostrar el diálogo
+            dialog.setVisible(true);
+            
+            // Cerrar el diálogo después de un pequeño delay (800ms)
+            Timer timer = new Timer(800, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dialog.dispose();
+                }
+            });
+            timer.setRepeats(false);
+            timer.start();
+        });
+    }
+    
     private void actualizarInputsSegunOperacion() {
         FileData.OperationType op = (FileData.OperationType) comboOperacion1.getSelectedItem();
         
@@ -1070,6 +1137,16 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                     break;
                     
                 case READ:
+                    // Primero validar si el archivo existe y tiene permisos
+                    String errorValidacion = validarLecturaArchivo(nombre, ruta, modoUsuario);
+                    if (errorValidacion != null) {
+                        // Si hay error, mostrar mensaje sin popup de "Leyendo"
+                        JOptionPane.showMessageDialog(this, errorValidacion, "Error al leer archivo", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    
+                    // Si pasa la validación, mostrar popup y crear el proceso
+                    mostrarPopupLeyendo();
                     System.out.println("GUI: Creando proceso para leer archivo: " + nombre + " en " + ruta);
                     so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta, tipoArchivo, modoUsuario);
                     txtCrearNombre.setText("");
@@ -1228,9 +1305,21 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         case "READ":
                             {
                                 String ruta = (parts.length >= 3) ? parts[2] : "root";
-                                System.out.println("[TXT] Cargando READ: " + nombre + " en " + ruta);
-                                so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta);
-                                count++;
+                                // Determinar tipo de archivo según el modo actual
+                                String tipoArchivoTXT = "Administrador".equals(modoUsuario) ? "privado" : "publico";
+                                // Validar antes de mostrar popup
+                                String errorValidacion = validarLecturaArchivo(nombre, ruta, modoUsuario);
+                                if (errorValidacion != null) {
+                                    System.out.println("[TXT] Error al leer: " + errorValidacion);
+                                    // No mostrar popup si hay error
+                                } else {
+                                    // Solo mostrar popup si pasa la validación
+                                    mostrarPopupLeyendo();
+                                    System.out.println("[TXT] Cargando READ: " + nombre + " en " + ruta);
+//                                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta, tipoArchivoTXT, modoUsuario);
+                                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta);
+                                    count++;
+                                }
                             }
                             break;
                             
