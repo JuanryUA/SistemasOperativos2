@@ -171,11 +171,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         txtRutaDirectorio1.setPreferredSize(new java.awt.Dimension(200, 25));
         
         // Create directory buttons
-        btnCrearDirectorio = new javax.swing.JButton("Crear Directorio");
-        btnCrearDirectorio1.addActionListener((ActionEvent e) -> {
-            crearDirectorio();
-        });
-        
+
         btnEliminarDirectorio = new javax.swing.JButton("Eliminar Directorio");
         btnEliminarDirectorio1.addActionListener((ActionEvent e) -> {
             eliminarDirectorio();
@@ -201,7 +197,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     
     private void crearDirectorio() {
         if (fileSystem == null) {
-            JOptionPane.showMessageDialog(this, "Error: No hay conexión con el FileSystem");
+            JOptionPane.showMessageDialog(this, "Error: No hay conexion con el FileSystem");
             return;
         }
         
@@ -212,14 +208,21 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         String nombreDirectorio = JOptionPane.showInputDialog(this, "Ingrese el nombre del directorio:", "Crear Directorio", JOptionPane.QUESTION_MESSAGE);
         if (nombreDirectorio != null && !nombreDirectorio.trim().isEmpty()) {
-            fileSystem.crearDirectorio(rutaPadre, nombreDirectorio.trim());
-            actualizarJTree();
+            String error = fileSystem.crearDirectorio(rutaPadre, nombreDirectorio.trim());
+
+                if (error != null) {
+                    // ¡Si nos devolvió texto, es un error! Mostramos el Pop-up.
+                    JOptionPane.showMessageDialog(this, error, "Error al crear directorio", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    // Si devolvió null, fue un éxito. Actualizamos el árbol.
+                    actualizarJTree();
+                }
         }
     }
     
     private void eliminarDirectorio() {
         if (fileSystem == null) {
-            JOptionPane.showMessageDialog(this, "Error: No hay conexión con el FileSystem");
+            JOptionPane.showMessageDialog(this, "Error: No hay conexion con el FileSystem");
             return;
         }
         
@@ -577,7 +580,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         if (nuevoAlgoritmo != null) {
             fileSystem.getDiskScheduler().setAlgoritmoDisk(nuevoAlgoritmo);
-            System.out.println("Algoritmo de disco cambiado a: " + selected.name());
+            //System.out.println("Algoritmo de disco cambiado a: " + selected.name());
+            System.out.println("[FS] Politica de Disco cambiada a: " + selected.name());
         }
     }
 
@@ -931,6 +935,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         btnCargarTXT = new javax.swing.JButton();
+        comboModoUsuario = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -1052,7 +1058,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         txtLog.setRows(5);
         jScrollPane1.setViewportView(txtLog);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 530, 110));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 340, 110));
 
         jLabel12.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         jLabel12.setText("Política de Planificación");
@@ -1070,19 +1076,21 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         });
         getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 260, 120, -1));
 
-        jLabelModo = new javax.swing.JLabel();
-        jLabelModo.setText("Modo");
-        getContentPane().add(jLabelModo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 20, -1, -1));
-
-        comboModoUsuario = new javax.swing.JComboBox<>();
         comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
-        comboModoUsuario.setSelectedItem("Administrador");
         comboModoUsuario.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboModoUsuarioActionPerformed(evt);
             }
         });
-        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 20, 120, 20));
+        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 30, -1, -1));
+
+        jButton1.setText("Ver Estadisticas");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 590, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -1206,6 +1214,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             actualizarJTree();
         }
     }//GEN-LAST:event_comboModoUsuarioActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if (fileSystem != null) {
+            EstadisticasFrame frame = new EstadisticasFrame(fileSystem);
+            frame.setVisible(true);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
     
 // --- CLASE INTERNA MEJORADA PARA FILTRAR SALIDA ---
 // --- CLASE INTERNA PARA REDIRIGIR LA CONSOLA (VERSIÓN FINAL 3 PARÁMETROS) ---
@@ -1254,117 +1270,107 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }
     
     private void cargarPeticionesDesdeTXT() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Seleccionar script de pruebas");
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de Texto (*.txt)", "txt"));
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Seleccionar script de pruebas");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos de Texto (*.txt)", "txt"));
 
-        int selection = fileChooser.showOpenDialog(this);
-        
-        if (selection == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            
-            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                String line;
-                int count = 0;
-                
-                while ((line = br.readLine()) != null) {
-                    // Ignorar líneas vacías o comentarios
-                    if (line.trim().isEmpty() || line.startsWith("#")) continue;
-                    
-                    // Separar por comas
-                    String[] parts = line.split(",");
-                    
-                    // Limpiar espacios en blanco alrededor
-                    for (int i = 0; i < parts.length; i++) {
-                        parts[i] = parts[i].trim();
-                    }
-                    
-                    // Mínimo necesitamos OPERACION y NOMBRE
-                    if (parts.length < 2) continue;
-                    
-                    String operacion = parts[0].toUpperCase();
-                    String nombre = parts[1];
-                    
-                    // Procesar según operación (Usando la misma lógica que tus botones manuales)
-                    switch (operacion) {
-                        case "CREATE":
-                            if (parts.length >= 3) {
-                                try {
-                                    int tamano = Integer.parseInt(parts[2]);
-                                    String ruta = (parts.length >= 4) ? parts[3] : "root";
-                                    
-                                    System.out.println("[TXT] Cargando CREATE: " + nombre + " (" + tamano + "kb) en " + ruta);
-                                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, ruta);
-                                    count++;
-                                } catch (NumberFormatException e) {
-                                    System.out.println("[TXT] Error en tamaño para línea: " + line);
+            int selection = fileChooser.showOpenDialog(this);
+
+            if (selection == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+
+                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                    String line;
+                    int count = 0;
+
+                    while ((line = br.readLine()) != null) {
+                        if (line.trim().isEmpty() || line.startsWith("#")) continue;
+
+                        String[] parts = line.split(",");
+                        for (int i = 0; i < parts.length; i++) parts[i] = parts[i].trim();
+
+                        if (parts.length < 2) continue;
+
+                        String operacion = parts[0].toUpperCase();
+                        String nombre = parts[1];
+
+                        // Valores por defecto
+                        String ruta = "root";
+                        String modo = "Usuario"; 
+                        String tipoArchivo = "publico";
+
+                        switch (operacion) {
+                            case "CREATE":
+                                if (parts.length >= 3) {
+                                    try {
+                                        int tamano = Integer.parseInt(parts[2]);
+                                        if (parts.length >= 4) ruta = parts[3];
+                                        if (parts.length >= 5) modo = parts[4]; // Leemos el modo
+
+                                        // Si es Admin, el archivo nace privado. Si es Usuario, público.
+                                        tipoArchivo = "Administrador".equalsIgnoreCase(modo) ? "privado" : "publico";
+
+                                        System.out.println("[TXT] CREATE: " + nombre + " (" + tamano + "kb) en " + ruta + " [" + modo + "]");
+                                        // Usamos el constructor completo que incluye tipo y modo
+                                        so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, ruta, tipoArchivo, modo);
+                                        count++;
+                                    } catch (NumberFormatException e) {
+                                        System.out.println("[TXT] Error formato número: " + line);
+                                    }
                                 }
-                            }
-                            break;
-                            
-                        case "READ":
-                            {
-                                String ruta = (parts.length >= 3) ? parts[2] : "root";
-                                // Determinar tipo de archivo según el modo actual
-                                String tipoArchivoTXT = "Administrador".equals(modoUsuario) ? "privado" : "publico";
-                                // Validar antes de mostrar popup
-                                String errorValidacion = validarLecturaArchivo(nombre, ruta, modoUsuario);
-                                if (errorValidacion != null) {
-                                    System.out.println("[TXT] Error al leer: " + errorValidacion);
-                                    // No mostrar popup si hay error
-                                } else {
-                                    // Solo mostrar popup si pasa la validación
-                                    mostrarPopupLeyendo();
-                                    System.out.println("[TXT] Cargando READ: " + nombre + " en " + ruta);
-//                                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta, tipoArchivoTXT, modoUsuario);
-                                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta);
+                                break;
+
+                            case "READ":
+                                if (parts.length >= 3) ruta = parts[2];
+                                if (parts.length >= 4) modo = parts[3]; // Leemos el modo
+
+                                // El tipoArchivo aquí no importa tanto para leer, pero lo definimos por coherencia
+                                tipoArchivo = "Administrador".equalsIgnoreCase(modo) ? "privado" : "publico";
+
+                                System.out.println("[TXT] READ: " + nombre + " en " + ruta + " [" + modo + "]");
+                                so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta, tipoArchivo, modo);
+                                count++;
+                                break;
+
+                            case "UPDATE":
+                                if (parts.length >= 3) {
+                                    String nuevoNombre = parts[2];
+                                    if (parts.length >= 4) ruta = parts[3];
+                                    if (parts.length >= 5) modo = parts[4]; // Leemos el modo
+
+                                    tipoArchivo = "Administrador".equalsIgnoreCase(modo) ? "privado" : "publico";
+
+                                    System.out.println("[TXT] UPDATE: " + nombre + " -> " + nuevoNombre + " en " + ruta + " [" + modo + "]");
+                                    so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre, ruta, tipoArchivo, modo);
                                     count++;
                                 }
-                            }
-                            break;
-                            
-                        case "UPDATE":
-                            if (parts.length >= 3) {
-                                String nuevoNombre = parts[2];
-                                String ruta = (parts.length >= 4) ? parts[3] : "root";
-                                
-                                System.out.println("[TXT] Cargando UPDATE: " + nombre + " -> " + nuevoNombre + " en " + ruta);
-                                so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre, ruta);
+                                break;
+
+                            case "DELETE":
+                                if (parts.length >= 3) ruta = parts[2];
+                                if (parts.length >= 4) modo = parts[3]; // Leemos el modo
+
+                                tipoArchivo = "Administrador".equalsIgnoreCase(modo) ? "privado" : "publico";
+
+                                System.out.println("[TXT] DELETE: " + nombre + " en " + ruta + " [" + modo + "]");
+                                so.crearProcesoIO(FileData.OperationType.DELETE, nombre, ruta, tipoArchivo, modo);
                                 count++;
-                            }
-                            break;
-                            
-                        case "DELETE":
-                            {
-                                String ruta = (parts.length >= 3) ? parts[2] : "root";
-                                System.out.println("[TXT] Cargando DELETE: " + nombre + " en " + ruta);
-                                so.crearProcesoIO(FileData.OperationType.DELETE, nombre, ruta);
-                                count++;
-                            }
-                            break;
-                            
-                        default:
-                            System.out.println("[TXT] Operación desconocida: " + operacion);
+                                break;
+                        }
+                        // Pequeña pausa para que no entren todos en el mismo milisegundo exacto
+                        // Thread.sleep(20); 
                     }
-                    
-                    // Pequeña pausa para no saturar instantáneamente la entrada (opcional)
-                    // Thread.sleep(50); 
+
+                    javax.swing.JOptionPane.showMessageDialog(this, 
+                        "Se cargaron " + count + " procesos exitosamente.", 
+                        "Carga Completa", 
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+                } catch (Exception e) {
+                    System.out.println("Error leyendo TXT: " + e.getMessage());
                 }
-                
-                javax.swing.JOptionPane.showMessageDialog(this, 
-                    "Se cargaron " + count + " procesos exitosamente.", 
-                    "Carga Completa", 
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                
-            } catch (Exception e) {
-                javax.swing.JOptionPane.showMessageDialog(this, 
-                    "Error al leer el archivo: " + e.getMessage(), 
-                    "Error", 
-                    javax.swing.JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
             }
         }
-    }
     /**
      * @param args the command line arguments
      */
@@ -1405,10 +1411,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JButton btnCrear;
     private javax.swing.JButton btnCrearDirectorio1;
     private javax.swing.JButton btnEliminarDirectorio1;
+    private javax.swing.JComboBox<String> comboModoUsuario;
     private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
     private javax.swing.JComboBox<ISchedullingDiskAlgorithm.SchedulingDiskType> diskSchedulingCombo1;
-    private javax.swing.JComboBox<String> comboModoUsuario;
-    private javax.swing.JLabel jLabelModo;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;

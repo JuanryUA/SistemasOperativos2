@@ -8,6 +8,9 @@ package CoreV2;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.concurrent.Semaphore; // <-- ¡IMPORTANTE!
+import CoreV2.DiskStrategies.ISchedullingDiskAlgorithm.SchedulingDiskType;
+import CoreV2.Map;      
+import CoreV2.HashMap;  
 /**
  *
  * @author verol
@@ -18,7 +21,10 @@ public class FileSystem {
     private DiskScheduler diskScheduler; 
     private Lista<Archivo> tablaDeArchivos = new Lista<Archivo>();
     private Directorio root; // Root directory
+    private Map<SchedulingDiskType, Long> tiempoTotalPorPolitica;
+    private Map<SchedulingDiskType, Integer> cantidadPorPolitica;
     
+
     // vvv ¡AÑADE ESTE GUARDIA! vvv
     private final Semaphore mutexCola = new Semaphore(1); // 1 = solo 1 hilo puede pasar
     
@@ -31,7 +37,53 @@ public class FileSystem {
         this.diskScheduler=diskScheduler;
         this.colaPeticiones = new Cola();
         this.root = new Directorio("root", null); // Initialize root directory
+        
+        this.tiempoTotalPorPolitica = new HashMap<>();
+        this.cantidadPorPolitica = new HashMap<>();
+        
+        // Pre-llenar con ceros usando tu put()
+        for (SchedulingDiskType type : SchedulingDiskType.values()) {
+            tiempoTotalPorPolitica.put(type, 0L);
+            cantidadPorPolitica.put(type, 0);
+        }
     }
+    
+    // --- MÉTODO PARA REGISTRAR (Usando tu getOrDefault) ---
+    private void registrarEstadistica(long tiempoInicio) {
+        long tiempoFinal = System.currentTimeMillis();
+        long duracion = tiempoFinal - tiempoInicio;
+        
+        SchedulingDiskType tipoActual = diskScheduler.getAlgoritmo().getSchedulingDiskType();
+        
+        // Usamos TUS métodos getOrDefault y put
+        long totalActual = tiempoTotalPorPolitica.getOrDefault(tipoActual, 0L);
+        tiempoTotalPorPolitica.put(tipoActual, totalActual + duracion);
+        
+        int cantidadActual = cantidadPorPolitica.getOrDefault(tipoActual, 0);
+        cantidadPorPolitica.put(tipoActual, cantidadActual + 1);
+    }
+    
+    public String obtenerEstadisticasTexto() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== TIEMPO PROMEDIO DE EJECUCIÓN (ms) ===\n\n");
+        
+        // Recorremos el ENUM, no el mapa
+        for (SchedulingDiskType type : SchedulingDiskType.values()) {
+            // Usamos TU get()
+            Long totalObj = tiempoTotalPorPolitica.get(type);
+            Integer countObj = cantidadPorPolitica.get(type);
+            
+            // Manejo de nulos por seguridad (aunque pre-llenamos)
+            long total = (totalObj != null) ? totalObj : 0L;
+            int count = (countObj != null) ? countObj : 0;
+            
+            double promedio = (count > 0) ? (double) total / count : 0.0;
+            
+            sb.append(String.format("%-10s: %.2f ms  (%d peticiones)\n", type.name(), promedio, count));
+        }
+        return sb.toString();
+    }
+    
     
     public void agregarPeticion(FileData fileData){
         try {
@@ -174,12 +226,13 @@ Thread.currentThread().interrupt();
                     
                     System.out.println("FileSystem: Archivo '" + nombre + "' CREADO con éxito en '" + ruta + "' (tipo: " + tipoArchivo + ").");
                     System.out.println("            TAMANO ARCHIVOOOOOL " + nuevoArchivo.getTamano());
-                    System.out.println("[FS] Archivo creado con éxito");
+                    System.out.println("[FS] Archivo creado con exito");
                 }
                                 
             } catch (InterruptedException ex) { /*...*/ } 
             finally {
                 // ¡Avisa al DMA que terminaste (con éxito o error)!
+                registrarEstadistica(peticionDeLaCola.getTiempoInicio());
                 peticionDeLaCola.getFileData().setIsProcessed(true); 
                 estaOcupado = false; // <-- Libera el disco
                 System.out.println("FileSystem: LIBERADO (por este hilo).");
@@ -250,22 +303,29 @@ Thread.currentThread().interrupt();
     }
     
     // Create a directory at the specified path
-    public void crearDirectorio(String ruta, String nombreDirectorio) {
+// Cambiamos 'void' por 'String' para devolver el mensaje
+    public String crearDirectorio(String ruta, String nombreDirectorio) {
         Directorio directorioPadre = buscarDirectorioPorRuta(ruta);
+        
+        // 1. Error: Ruta padre no existe
         if (directorioPadre == null) {
-            System.out.println("FileSystem: Error, el directorio padre '" + ruta + "' no existe.");
-            return;
+            String msg = "Error: El directorio padre '" + ruta + "' no existe.";
+            System.out.println("FileSystem: " + msg);
+            return msg; // <--- Devolvemos el error
         }
         
-        // Check if directory or file with same name already exists
+        // 2. Error: Ya existe algo con ese nombre
         if (directorioPadre.existe(nombreDirectorio)) {
-            System.out.println("FileSystem: Error, ya existe un archivo o directorio con el nombre '" + nombreDirectorio + "' en '" + ruta + "'.");
-            return;
+            String msg = "Error: Ya existe un archivo o directorio con el nombre '" + nombreDirectorio + "' en '" + ruta + "'.";
+            System.out.println("FileSystem: " + msg);
+            return msg; // <--- Devolvemos el error
         }
         
+        // 3. Éxito
         Directorio nuevoDirectorio = new Directorio(nombreDirectorio, directorioPadre);
         directorioPadre.agregarSubdirectorio(nuevoDirectorio);
         System.out.println("FileSystem: Directorio '" + nombreDirectorio + "' creado en '" + ruta + "'.");
+        return null; // <--- null significa "Todo bien, no hubo error"
     }
     
     // Delete a directory and all its contents
@@ -384,6 +444,7 @@ Thread.currentThread().interrupt();
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             } finally {
+                registrarEstadistica(peticionDeLaCola.getTiempoInicio());
                 peticionDeLaCola.getFileData().setIsProcessed(true);
                 estaOcupado = false;
                 System.out.println("FileSystem: LIBERADO (por este hilo).");
@@ -429,6 +490,7 @@ Thread.currentThread().interrupt();
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             } finally {
+                registrarEstadistica(peticionDeLaCola.getTiempoInicio());
                 peticionDeLaCola.getFileData().setIsProcessed(true);
                 estaOcupado = false;
                 System.out.println("FileSystem: LIBERADO (por este hilo).");
@@ -498,6 +560,7 @@ Thread.currentThread().interrupt();
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             } finally {
+                registrarEstadistica(peticionDeLaCola.getTiempoInicio());
                 peticionDeLaCola.getFileData().setIsProcessed(true);
                 estaOcupado = false;
                 System.out.println("FileSystem: LIBERADO (por este hilo).");

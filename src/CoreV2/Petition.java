@@ -14,6 +14,8 @@ public class Petition {
     private int fileSize; //tamano en bloques del futuro archivo
     private FileData filedata;
     private int track; // Track/cylinder number for disk scheduling
+    private long tiempoInicio;
+    
     //LUEGO ANADIR DIRECTORIO
 
     public Petition(FileData filedata) {
@@ -22,6 +24,7 @@ public class Petition {
         this.filedata =filedata;
         // Generate track number based on filename hash (0-199 tracks)
         this.track = Math.abs(fileName.hashCode()) % 200;
+        this.tiempoInicio = System.currentTimeMillis();
     }
     
     public Petition(FileData filedata, int track) {
@@ -29,6 +32,7 @@ public class Petition {
         this.fileSize=filedata.getFileSize();
         this.filedata =filedata;
         this.track = track;
+        this.tiempoInicio = System.currentTimeMillis();
     }
 
     public String getFileName() {
@@ -57,6 +61,10 @@ public class Petition {
     
     public void setTrack(int track) {
         this.track = track;
+    }
+    
+    public long getTiempoInicio() {
+        return tiempoInicio;
     }
     
 }

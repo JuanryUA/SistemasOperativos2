@@ -26,7 +26,7 @@ public class DMA {
     public void ejecutarES(Proceso p, FileSystem filesystem, Runnable callback) {
         new Thread(() -> {
             try {
-                System.out.println("[DMA] Entró al DMA");
+                System.out.println("[DMA] Entro al DMA");
                 System.out.println("[DMA] Transportando datos del proceso " + p.getNombre() + " para crear peticion...");
                 //System.out.println("ENTRO AL DMA");
                 FileData fileData = p.getFileData();
