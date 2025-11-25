@@ -864,7 +864,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         btnCargarTXT = new javax.swing.JButton();
-        comboModoUsuario1 = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -1008,14 +1007,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabelModo.setText("Modo");
         getContentPane().add(jLabelModo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 50, -1, -1));
 
-        comboModoUsuario1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
-        comboModoUsuario1.setSelectedItem("Administrador");
-        comboModoUsuario1.addActionListener(new java.awt.event.ActionListener() {
+        comboModoUsuario = new javax.swing.JComboBox<>();
+        comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
+        comboModoUsuario.setSelectedItem("Administrador");
+        comboModoUsuario.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboModoUsuarioActionPerformed(evt);
             }
         });
-        getContentPane().add(comboModoUsuario1, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 50, 120, 20));
+        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 50, 120, 20));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -1121,7 +1121,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCargarTXTActionPerformed
     
     private void comboModoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboModoUsuarioActionPerformed
-        String modoSeleccionado = (String) comboModoUsuario1.getSelectedItem();
+        String modoSeleccionado = (String) comboModoUsuario.getSelectedItem();
         modoUsuario = modoSeleccionado;
         actualizarVisibilidadSegunModo();
         // Actualizar JTree para reflejar el filtrado de archivos según el modo
@@ -1316,10 +1316,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JButton btnCrear;
     private javax.swing.JButton btnCrearDirectorio1;
     private javax.swing.JButton btnEliminarDirectorio1;
-    private javax.swing.JComboBox<String> comboModoUsuario1;
-    private javax.swing.JLabel jLabelModo;
     private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
     private javax.swing.JComboBox<ISchedullingDiskAlgorithm.SchedulingDiskType> diskSchedulingCombo1;
+    private javax.swing.JComboBox<String> comboModoUsuario;
+    private javax.swing.JLabel jLabelModo;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
