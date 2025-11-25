@@ -160,9 +160,10 @@ Thread.currentThread().interrupt();
                     System.out.println("FileSystem: Error, no hay espacio para '" + nombre + "'.");
                     data.setErrorMessage("No hay espacio suficiente en el disco.");
                 } else {
-                    // Creamos el archivo con nombre, tamaño, ruta y proceso que lo creó
+                    // Creamos el archivo con nombre, tamaño, ruta, proceso que lo creó y tipo
                     String processName = data.getProcessName();
-                    Archivo nuevoArchivo = new Archivo(nombre, tamano, ruta, processName);
+                    String tipoArchivo = data.getTipoArchivo() != null ? data.getTipoArchivo() : "publico";
+                    Archivo nuevoArchivo = new Archivo(nombre, tamano, ruta, processName, tipoArchivo);
 
                     // Y ahora le asignamos los bloques que nos dio el disco
                     nuevoArchivo.setBloquesAsignados(bloquesAsignados);
@@ -171,7 +172,7 @@ Thread.currentThread().interrupt();
                     tablaDeArchivos.add(nuevoArchivo);
                     directorioDestino.agregarArchivo(nuevoArchivo);
                     
-                    System.out.println("FileSystem: Archivo '" + nombre + "' CREADO con éxito en '" + ruta + "'.");
+                    System.out.println("FileSystem: Archivo '" + nombre + "' CREADO con éxito en '" + ruta + "' (tipo: " + tipoArchivo + ").");
                     System.out.println("            TAMANO ARCHIVOOOOOL " + nuevoArchivo.getTamano());
                     System.out.println("[FS] Archivo creado con éxito");
                 }
@@ -338,6 +339,17 @@ Thread.currentThread().interrupt();
                 FileData data = peticionDeLaCola.getFileData();
                 String nombre = data.getFileName();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
+                String modoUsuario = data.getModoUsuario() != null ? data.getModoUsuario() : "Usuario";
+                
+                // Validar permisos: Solo administrador puede eliminar
+                if ("Usuario".equals(modoUsuario)) {
+                    System.out.println("FileSystem: Error, el usuario no tiene permisos para eliminar archivos.");
+                    data.setErrorMessage("Acceso denegado: Solo el administrador puede eliminar archivos.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
                 
                 // Buscar el archivo en el directorio especificado
                 Archivo archivo = buscarArchivoPorRuta(nombre, ruta);
@@ -385,6 +397,7 @@ Thread.currentThread().interrupt();
                 FileData data = peticionDeLaCola.getFileData();
                 String nombre = data.getFileName();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
+                String modoUsuario = data.getModoUsuario() != null ? data.getModoUsuario() : "Usuario";
                 
                 // Buscar el archivo en el directorio especificado
                 Archivo archivo = buscarArchivoPorRuta(nombre, ruta);
@@ -392,6 +405,16 @@ Thread.currentThread().interrupt();
                 if (archivo == null) {
                     System.out.println("FileSystem: Error, el archivo '" + nombre + "' no existe en '" + ruta + "'.");
                     data.setErrorMessage("El archivo '" + nombre + "' no existe en '" + ruta + "'.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
+                
+                // Validar permisos: Usuario solo puede leer archivos públicos
+                if ("Usuario".equals(modoUsuario) && "privado".equals(archivo.getTipoArchivo())) {
+                    System.out.println("FileSystem: Error, el usuario no tiene permisos para leer el archivo privado '" + nombre + "'.");
+                    data.setErrorMessage("Acceso denegado: No tiene permisos para leer archivos privados del sistema.");
                     data.setIsProcessed(true);
                     estaOcupado = false;
                     System.out.println("FileSystem: LIBRE (por este hilo).");
@@ -420,6 +443,17 @@ Thread.currentThread().interrupt();
                 String nombreViejo = data.getFileName();
                 String nombreNuevo = data.getNewFileName();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
+                String modoUsuario = data.getModoUsuario() != null ? data.getModoUsuario() : "Usuario";
+                
+                // Validar permisos: Solo administrador puede actualizar
+                if ("Usuario".equals(modoUsuario)) {
+                    System.out.println("FileSystem: Error, el usuario no tiene permisos para actualizar archivos.");
+                    data.setErrorMessage("Acceso denegado: Solo el administrador puede actualizar archivos.");
+                    data.setIsProcessed(true);
+                    estaOcupado = false;
+                    System.out.println("FileSystem: LIBRE (por este hilo).");
+                    return;
+                }
                 
                 // Validar que el nuevo nombre no esté vacío
                 if (nombreNuevo == null || nombreNuevo.isEmpty()) {

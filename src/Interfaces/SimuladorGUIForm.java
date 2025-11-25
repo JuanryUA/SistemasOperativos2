@@ -54,6 +54,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private Timer timerActualizacion;
     private java.util.Set<String> procesosProcesados = new java.util.HashSet<>(); // Para evitar mostrar popups duplicados
     private javax.swing.JTree jTreeDirectorio; // JTree for directory structure
+    private String modoUsuario = "Administrador"; // Modo actual: "Administrador" o "Usuario"
     private javax.swing.JScrollPane jScrollPaneTree; // Scroll pane for JTree
     private javax.swing.JTextField txtRutaDirectorio; // Directory path input
     private javax.swing.JButton btnCrearDirectorio; // Button to create directory
@@ -104,6 +105,49 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         configurarComponentesCRUD();
         configurarJTree();
         configurarDiskSchedulerCombo();
+        actualizarVisibilidadSegunModo(); // Inicializar visibilidad según modo
+    }
+    
+    private void actualizarVisibilidadSegunModo() {
+        boolean esAdmin = "Administrador".equals(modoUsuario);
+        
+        // Botones de directorio solo visibles para admin
+        btnCrearDirectorio1.setVisible(esAdmin);
+        btnEliminarDirectorio1.setVisible(esAdmin);
+        jLabel11.setVisible(esAdmin); // Label "Directorio"
+        
+        // ComboBox de política de planificación solo visible para admin
+        diskSchedulingCombo1.setVisible(esAdmin);
+        jLabel12.setVisible(esAdmin); // Label "Política de Planificación"
+        
+        // Filtrar opciones del combo de operaciones según el modo
+        FileData.OperationType[] opcionesAdmin = {
+            FileData.OperationType.CREATE,
+            FileData.OperationType.READ,
+            FileData.OperationType.UPDATE,
+            FileData.OperationType.DELETE
+        };
+        FileData.OperationType[] opcionesUsuario = {
+            FileData.OperationType.CREATE,
+            FileData.OperationType.READ
+        };
+        
+        FileData.OperationType seleccionado = (FileData.OperationType) comboOperacion1.getSelectedItem();
+        comboOperacion1.setModel(new javax.swing.DefaultComboBoxModel<>(
+            esAdmin ? opcionesAdmin : opcionesUsuario
+        ));
+        
+        // Si estaba en UPDATE o DELETE y cambiamos a modo Usuario, cambiar a CREATE
+        if (!esAdmin && (seleccionado == FileData.OperationType.UPDATE || 
+                         seleccionado == FileData.OperationType.DELETE)) {
+            comboOperacion1.setSelectedItem(FileData.OperationType.CREATE);
+        } else if (esAdmin && seleccionado != null) {
+            // Restaurar selección si es admin
+            comboOperacion1.setSelectedItem(seleccionado);
+        }
+        
+        // Actualizar inputs según la operación seleccionada
+        actualizarInputsSegunOperacion();
     }
     
     private void configurarJTree() {
@@ -146,7 +190,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         panelInfo.add(labelInfoTamano);
         
         // Add components to GUI (using absolute layout)
-        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 50, 300, 400));
+        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 80, 300, 400));
 //        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
 //        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
 //        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
@@ -414,6 +458,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     
     private DefaultMutableTreeNode construirArbolDirectorio(CoreV2.Directorio directorio) {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(directorio.getNombre());
+        boolean esAdmin = "Administrador".equals(modoUsuario);
         
         // Add subdirectories
         Lista<Directorio> subdirs = directorio.getSubdirectorios();
@@ -423,12 +468,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             node.add(subdirNode);
         }
         
-        // Add files
+        // Add files (filtrar según modo de usuario)
         Lista<Archivo> archivos = directorio.getArchivos();
         for (int i = 0; i < archivos.size(); i++) {
             Archivo arch = archivos.get(i);
-            DefaultMutableTreeNode archNode = new DefaultMutableTreeNode(arch);
-            node.add(archNode);
+            // Solo mostrar archivos públicos si es modo Usuario, o todos si es Admin
+            if (esAdmin || "publico".equals(arch.getTipoArchivo())) {
+                DefaultMutableTreeNode archNode = new DefaultMutableTreeNode(arch);
+                node.add(archNode);
+            }
         }
         
         return node;
@@ -816,6 +864,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         btnCargarTXT = new javax.swing.JButton();
+        comboModoUsuario1 = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -955,6 +1004,19 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         });
         getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 260, 120, -1));
 
+        jLabelModo = new javax.swing.JLabel();
+        jLabelModo.setText("Modo");
+        getContentPane().add(jLabelModo, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 50, -1, -1));
+
+        comboModoUsuario1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
+        comboModoUsuario1.setSelectedItem("Administrador");
+        comboModoUsuario1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboModoUsuarioActionPerformed(evt);
+            }
+        });
+        getContentPane().add(comboModoUsuario1, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 50, 120, 20));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -986,6 +1048,9 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 ruta = "root";
             }
             
+            // Determinar tipo de archivo según el modo
+            String tipoArchivo = "Administrador".equals(modoUsuario) ? "privado" : "publico";
+            
             switch (op) {
                 case CREATE:
                     String tamanoStr = txtCrearTamano.getText();
@@ -998,15 +1063,15 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "El tamaño debe ser mayor a 0.");
                         return;
                     }
-                    System.out.println("GUI: Creando proceso para archivo: " + nombre + " en " + ruta);
-                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, ruta);
+                    System.out.println("GUI: Creando proceso para archivo: " + nombre + " en " + ruta + " (tipo: " + tipoArchivo + ")");
+                    so.crearProceso(Proceso.Tipo.IO_BOUND, 0, nombre, tamano, ruta, tipoArchivo, modoUsuario);
                     txtCrearNombre.setText("");
                     txtCrearTamano.setText("");
                     break;
                     
                 case READ:
                     System.out.println("GUI: Creando proceso para leer archivo: " + nombre + " en " + ruta);
-                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta);
+                    so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta, tipoArchivo, modoUsuario);
                     txtCrearNombre.setText("");
                     break;
                     
@@ -1017,14 +1082,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         return;
                     }
                     System.out.println("GUI: Creando proceso para actualizar archivo: " + nombre + " -> " + nuevoNombre + " en " + ruta);
-                    so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre, ruta);
+                    so.crearProcesoIO(FileData.OperationType.UPDATE, nombre, nuevoNombre, ruta, tipoArchivo, modoUsuario);
                     txtCrearNombre.setText("");
                     txtNuevoNombre1.setText("");
                     break;
                     
                 case DELETE:
                     System.out.println("GUI: Creando proceso para eliminar archivo: " + nombre + " en " + ruta);
-                    so.crearProcesoIO(FileData.OperationType.DELETE, nombre, ruta);
+                    so.crearProcesoIO(FileData.OperationType.DELETE, nombre, ruta, tipoArchivo, modoUsuario);
                     txtCrearNombre.setText("");
                     break;
             }
@@ -1043,7 +1108,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }//GEN-LAST:event_txtRutaDirectorio1ActionPerformed
 
     private void btnCrearDirectorio1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearDirectorio1ActionPerformed
-        // TODO add your handling code here:
+        crearDirectorio();
     }//GEN-LAST:event_btnCrearDirectorio1ActionPerformed
 
     private void diskSchedulingCombo1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_diskSchedulingCombo1ActionPerformed
@@ -1054,6 +1119,16 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         // TODO add your handling code here:
         cargarPeticionesDesdeTXT();
     }//GEN-LAST:event_btnCargarTXTActionPerformed
+    
+    private void comboModoUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboModoUsuarioActionPerformed
+        String modoSeleccionado = (String) comboModoUsuario1.getSelectedItem();
+        modoUsuario = modoSeleccionado;
+        actualizarVisibilidadSegunModo();
+        // Actualizar JTree para reflejar el filtrado de archivos según el modo
+        if (jTreeDirectorio != null && fileSystem != null) {
+            actualizarJTree();
+        }
+    }//GEN-LAST:event_comboModoUsuarioActionPerformed
     
 // --- CLASE INTERNA MEJORADA PARA FILTRAR SALIDA ---
 // --- CLASE INTERNA PARA REDIRIGIR LA CONSOLA (VERSIÓN FINAL 3 PARÁMETROS) ---
@@ -1241,6 +1316,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JButton btnCrear;
     private javax.swing.JButton btnCrearDirectorio1;
     private javax.swing.JButton btnEliminarDirectorio1;
+    private javax.swing.JComboBox<String> comboModoUsuario1;
+    private javax.swing.JLabel jLabelModo;
     private javax.swing.JComboBox<FileData.OperationType> comboOperacion1;
     private javax.swing.JComboBox<ISchedullingDiskAlgorithm.SchedulingDiskType> diskSchedulingCombo1;
     private javax.swing.JLabel jLabel1;

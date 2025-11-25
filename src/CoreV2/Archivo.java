@@ -18,6 +18,7 @@ public class Archivo {
     // Guardamos los IDs de los bloques que ocupa.
     private Lista<Integer> bloquesAsignados; 
     private String processName; // Nombre del proceso que creó este archivo
+    private String tipoArchivo; // "publico" o "privado"
 
     public Archivo(String nombre, int tamano) {
         this.nombre = nombre;
@@ -25,6 +26,7 @@ public class Archivo {
         this.ruta = "root"; // Default to root
         this.bloquesAsignados = new Lista<>();    
         this.processName = null;
+        this.tipoArchivo = "publico"; // Default
     }
     
     public Archivo(String nombre, int tamano, String processName) {
@@ -33,6 +35,7 @@ public class Archivo {
         this.ruta = "root"; // Default to root
         this.bloquesAsignados = new Lista<>();    
         this.processName = processName;
+        this.tipoArchivo = "publico"; // Default
     }
     
     public Archivo(String nombre, int tamano, String ruta, String processName) {
@@ -41,6 +44,16 @@ public class Archivo {
         this.ruta = ruta != null ? ruta : "root";
         this.bloquesAsignados = new Lista<>();    
         this.processName = processName;
+        this.tipoArchivo = "publico"; // Default
+    }
+    
+    public Archivo(String nombre, int tamano, String ruta, String processName, String tipoArchivo) {
+        this.nombre = nombre;
+        this.tamano = tamano;
+        this.ruta = ruta != null ? ruta : "root";
+        this.bloquesAsignados = new Lista<>();    
+        this.processName = processName;
+        this.tipoArchivo = tipoArchivo != null ? tipoArchivo : "publico";
     }
 
     // --- Getters y Setters ---
@@ -69,6 +82,14 @@ public class Archivo {
     
     public void setRuta(String ruta) {
         this.ruta = ruta != null ? ruta : "root";
+    }
+    
+    public String getTipoArchivo() {
+        return tipoArchivo;
+    }
+    
+    public void setTipoArchivo(String tipoArchivo) {
+        this.tipoArchivo = tipoArchivo != null ? tipoArchivo : "publico";
     }
     
     @Override

@@ -120,10 +120,25 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
     
     //IO Bound with directory path
     public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta) {
+        crearProceso(tipo, prioridad, nombreFuturoArchivo, sizeFuturoArchivo, ruta, "publico");
+    }
+    
+    //IO Bound with directory path and file type
+    public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta, String tipoArchivo) {
+        crearProceso(tipo, prioridad, nombreFuturoArchivo, sizeFuturoArchivo, ruta, tipoArchivo, "Usuario");
+    }
+    
+    //IO Bound with directory path, file type and user mode
+    public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta, String tipoArchivo, String modoUsuario) {
 //        System.out.println("entro A CRar");
         String nombre = "P"+processCounter;
 
         Proceso p = new Proceso(processCounter, nombre, nombreFuturoArchivo, sizeFuturoArchivo, ruta);
+        // Establecer el tipo de archivo y modo de usuario en el FileData del proceso
+        if (p.getFileData() != null) {
+            p.getFileData().setTipoArchivo(tipoArchivo);
+            p.getFileData().setModoUsuario(modoUsuario);
+        }
         p.setEstado(Proceso.Estado.NUEVO);
         p.setPrimerTicEjecucion(clock.getTic());
         
@@ -142,14 +157,28 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
     }
     
     // Método para crear procesos IO con diferentes operaciones CRUD
+    // Versión sin ruta (usa "root" por defecto)
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo) {
-        crearProcesoIO(operationType, nombreArchivo, "root");
+        crearProcesoIO(operationType, nombreArchivo, "root", "publico", "Usuario");
     }
     
+    // Versión con ruta
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String ruta) {
+        crearProcesoIO(operationType, nombreArchivo, ruta, "publico", "Usuario");
+    }
+    
+    // Versión con ruta y tipoArchivo
+    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String ruta, String tipoArchivo) {
+        crearProcesoIO(operationType, nombreArchivo, ruta, tipoArchivo, "Usuario");
+    }
+    
+    // Versión completa sin nuevoNombre (para CREATE, READ, DELETE)
+    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String ruta, String tipoArchivo, String modoUsuario) {
         String nombre = "P" + processCounter;
         // Crear FileData con el tipo de operación correcto
         FileData fileData = new FileData(nombreArchivo, ruta, operationType, nombre);
+        fileData.setTipoArchivo(tipoArchivo);
+        fileData.setModoUsuario(modoUsuario);
         Proceso p = new Proceso(processCounter, nombre, fileData);
         p.setEstado(Proceso.Estado.NUEVO);
         p.setPrimerTicEjecucion(clock.getTic());
@@ -158,10 +187,13 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         this.agregarProceso(p);
     }
     
-    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta) {
+    // Versión completa con nuevoNombre para UPDATE (6 parámetros - sin ambigüedad)
+    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta, String tipoArchivo, String modoUsuario) {
         String nombre = "P" + processCounter;
         // Crear FileData con el tipo de operación correcto
         FileData fileData = new FileData(nombreArchivo, nuevoNombre, ruta, operationType, nombre);
+        fileData.setTipoArchivo(tipoArchivo);
+        fileData.setModoUsuario(modoUsuario);
         Proceso p = new Proceso(processCounter, nombre, fileData);
         p.setEstado(Proceso.Estado.NUEVO);
         p.setPrimerTicEjecucion(clock.getTic());
@@ -169,6 +201,17 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         moverANuevos(p);
         this.agregarProceso(p);
     }
+    
+//    // Métodos de compatibilidad para UPDATE con menos parámetros - usando null para distinguir
+//    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta) {
+//        // Usar el método de 6 parámetros con valores por defecto
+//        crearProcesoIO(operationType, nombreArchivo, nuevoNombre, ruta, "publico", "Usuario");
+//    }
+//    
+//    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta, String tipoArchivo) {
+//        // Usar el método de 6 parámetros con modoUsuario por defecto
+//        crearProcesoIO(operationType, nombreArchivo, nuevoNombre, ruta, tipoArchivo, "Usuario");
+//    }
 
     public void agregarProceso(Proceso p) {
         try {
