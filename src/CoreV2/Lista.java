@@ -116,5 +116,29 @@ public class Lista<T> {
             actualOtra = actualOtra.siguiente;
         }
     }
+    
+    // Agrega este método a tu clase Lista para poder ordenar
+    public void sort(java.util.Comparator<T> comparator) {
+        if (cabeza == null || cabeza.siguiente == null) {
+            return;
+        }
+
+        boolean huboIntercambio;
+        do {
+            huboIntercambio = false;
+            Nodo actual = cabeza;
+            while (actual.siguiente != null) {
+                // Comparamos el dato actual con el siguiente usando el comparador
+                if (comparator.compare(actual.dato, actual.siguiente.dato) > 0) {
+                    // Intercambiamos los datos (es más fácil que intercambiar los nodos)
+                    T temp = actual.dato;
+                    actual.dato = actual.siguiente.dato;
+                    actual.siguiente.dato = temp;
+                    huboIntercambio = true;
+                }
+                actual = actual.siguiente;
+            }
+        } while (huboIntercambio);
+    }
 }
 

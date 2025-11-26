@@ -7,8 +7,7 @@ package CoreV2.DiskStrategies;
 import CoreV2.Cola;
 import CoreV2.Petition;
 import CoreV2.Nodo;
-import java.util.ArrayList;
-import java.util.Collections;
+import CoreV2.Lista; // Tu Lista
 import java.util.Comparator;
 
 /**
@@ -48,7 +47,7 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
         }
         
         // Collect all petitions
-        ArrayList<Petition> petitions = new ArrayList<>();
+        Lista<Petition> petitions = new Lista<>();
         Nodo actual = colaPeticiones.getFrente();
         while (actual != null) {
             Petition p = actual.getPeticion();
@@ -63,11 +62,12 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
         }
         
         // Separate petitions into those ahead and behind
-        ArrayList<Petition> ahead = new ArrayList<>();
-        ArrayList<Petition> behind = new ArrayList<>();
+        Lista<Petition> ahead = new Lista<>();
+        Lista<Petition> behind = new Lista<>();
         Petition atCurrent = null; // Request at current head position
         
-        for (Petition p : petitions) {
+        for (int i = 0; i < petitions.size(); i++) {
+            Petition p = petitions.get(i);
             if (p.getTrack() == currentHeadPosition) {
                 atCurrent = p; // Prioritize request at current position
             } else if (p.getTrack() > currentHeadPosition) {
@@ -84,8 +84,8 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
         }
         
         // Sort ahead in ascending order, behind in descending order
-        Collections.sort(ahead, Comparator.comparingInt(Petition::getTrack));
-        Collections.sort(behind, Comparator.comparingInt(Petition::getTrack).reversed());
+        ahead.sort(Comparator.comparingInt(Petition::getTrack));
+        behind.sort(Comparator.comparingInt(Petition::getTrack).reversed());
         
         Petition next = null;
         

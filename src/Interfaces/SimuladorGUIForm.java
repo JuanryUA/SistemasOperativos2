@@ -186,7 +186,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         panelInfo.add(labelInfoTamano);
         
         // Add components to GUI (using absolute layout)
-        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 83, 300, 400));
+        getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 83, 300, 300));
 //        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
 //        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
 //        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
@@ -937,6 +937,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         btnCargarTXT = new javax.swing.JButton();
         comboModoUsuario = new javax.swing.JComboBox<>();
         jButton1 = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -961,7 +962,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 220, 120, 20));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 220, 140, 20));
 
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 200, 490, 110));
@@ -1013,7 +1014,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 
         lblTic.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         lblTic.setText("Tic: 0");
-        getContentPane().add(lblTic, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 520, -1, -1));
+        getContentPane().add(lblTic, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 510, -1, -1));
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel9.setText("Archivo");
@@ -1035,10 +1036,10 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCrearDirectorio1ActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 340, 120, 20));
+        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 340, 140, 20));
 
         btnEliminarDirectorio1.setText("Eliminar Directorio");
-        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 380, 120, -1));
+        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 380, 140, -1));
 
         diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
         diskSchedulingCombo1.addActionListener(new java.awt.event.ActionListener() {
@@ -1046,7 +1047,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 diskSchedulingCombo1ActionPerformed(evt);
             }
         });
-        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 460, 120, 20));
+        getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 460, 130, 20));
 
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel11.setText("Directorio");
@@ -1058,7 +1059,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         txtLog.setRows(5);
         jScrollPane1.setViewportView(txtLog);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, 340, 110));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 530, 340, 110));
 
         jLabel12.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         jLabel12.setText("Política de Planificación");
@@ -1066,7 +1067,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 
         jLabel13.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel13.setText("Log");
-        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 520, -1, -1));
+        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 510, -1, -1));
 
         btnCargarTXT.setText("Cargar TXT");
         btnCargarTXT.addActionListener(new java.awt.event.ActionListener() {
@@ -1074,7 +1075,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 btnCargarTXTActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 260, 120, -1));
+        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 260, 140, 20));
 
         comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
         comboModoUsuario.addActionListener(new java.awt.event.ActionListener() {
@@ -1082,7 +1083,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 comboModoUsuarioActionPerformed(evt);
             }
         });
-        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 30, -1, -1));
+        getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 20, 120, -1));
 
         jButton1.setText("Ver Estadisticas");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -1090,7 +1091,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 jButton1ActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 590, -1, -1));
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 590, -1, -1));
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel7.setText("Modo");
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 20, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -1424,6 +1429,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
