@@ -78,6 +78,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         this.so = so; 
         
         initComponents(); // Inicia lo visual
+        
+        //holaaaaaaaaaaaaaaa
       
         java.io.PrintStream originalOut = System.out;
         
