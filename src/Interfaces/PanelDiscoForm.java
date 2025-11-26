@@ -15,16 +15,19 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
+import CoreV2.Lista;
+import java.awt.FlowLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class PanelDiscoForm extends javax.swing.JPanel {
 
     // --- VARIABLES PROPIAS ---
-    private List<JLabel> bloquesVisuales;
+    private Lista<JLabel> bloquesVisuales;
     private int totalBloques;
     
     // Colores para los estados
@@ -41,88 +44,93 @@ public class PanelDiscoForm extends javax.swing.JPanel {
      */
     public void inicializarCuadricula(int totalBloques) {
         this.totalBloques = totalBloques;
-        this.bloquesVisuales = new ArrayList<>();
         
-        // Limpiamos por si acaso
+        this.bloquesVisuales = new Lista<>();
+        
+        // 1. Configuración del panel contenedor
         panelCuadricula.removeAll();
+        panelCuadricula.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         
-        // Calculamos filas y columnas (8 columnas fijas)
+        // Calculamos filas (8 columnas fijas)
         int columnas = 8;
         int filas = (int) Math.ceil((double) totalBloques / columnas);
         
-        // Le decimos al panel interno que se comporte como una cuadrícula
-        panelCuadricula.setLayout(new GridLayout(filas, columnas, 3, 3));
+        // 2. Panel interno
+        JPanel gridPanel = new JPanel();
+        gridPanel.setLayout(new GridLayout(filas, columnas, 3, 3)); // Espacio de 3px entre bloques
+        gridPanel.setOpaque(false);
 
-        // Creamos los cuadritos (Labels)
+        // Creamos los cuadritos
         for (int i = 0; i < totalBloques; i++) {
-            JLabel bloque = new JLabel(String.valueOf(i), SwingConstants.CENTER);
+            JLabel bloque = new JLabel("", SwingConstants.CENTER); // Texto vacio al inicio
             bloque.setOpaque(true);
             bloque.setBackground(COLOR_LIBRE);
             bloque.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            bloque.setPreferredSize(new Dimension(35, 35)); // Tamaño del cuadrito
             
-            bloquesVisuales.add(bloque); // Guardar en lista lógica
-            panelCuadricula.add(bloque); // Añadir al panel visual
+            // --- CAMBIO SOLICITADO: 35 de ancho x 50 de alto ---
+            bloque.setPreferredSize(new Dimension(35, 45)); 
+            
+            // Fuente base pequeña
+            bloque.setFont(new Font("SansSerif", Font.PLAIN, 10)); 
+            
+            bloquesVisuales.add(bloque); 
+            gridPanel.add(bloque); 
         }
         
-        // Refrescar el panel para que aparezcan
+        panelCuadricula.add(gridPanel);
         panelCuadricula.revalidate();
         panelCuadricula.repaint();
     }
 
     /**
-     * Este método actualiza los colores rojo/verde según el Disk real
-     * y muestra el nombre del archivo en los bloques ocupados
+     * Actualiza la vista mostrando ID arriba y Nombre abajo
      */
     public void actualizarVista(Disk disk, FileSystem fileSystem) {
         if (bloquesVisuales == null) return;
         
         for (int i = 0; i < totalBloques; i++) {
-            // Preguntamos al disco real
             boolean libre = disk.esBloqueLibre(i);
             JLabel bloqueVisual = bloquesVisuales.get(i);
             
             if (libre) {
                 bloqueVisual.setBackground(COLOR_LIBRE);
-                bloqueVisual.setText(String.valueOf(i)); // Mostrar número de bloque
-                bloqueVisual.setToolTipText("Bloque " + i + " - Libre");
                 bloqueVisual.setForeground(Color.BLACK);
-                bloqueVisual.setFont(new Font(bloqueVisual.getFont().getName(), Font.BOLD, 12));
+                // Solo mostramos el número centrado
+                bloqueVisual.setText(String.valueOf(i));
+                bloqueVisual.setToolTipText("Bloque " + i + " - Libre");
+                bloqueVisual.setFont(new Font("SansSerif", Font.PLAIN, 10));
             } else {
                 bloqueVisual.setBackground(COLOR_OCUPADO);
-                // Obtener el nombre del archivo que ocupa este bloque
+                bloqueVisual.setForeground(Color.WHITE);
+                
                 String fileName = fileSystem != null ? fileSystem.getFileNameFromBlock(i) : null;
+                
                 if (fileName != null) {
-                    // Mostrar nombre del archivo (truncado si es muy largo)
-//                    String displayText = String.valueOf(i)+". \n"+(fileName.length() > 8 ? fileName.substring(0, 6) + ".." : fileName);
-                    // 1. Procesamos el nombre del archivo
-                    String nombreProcesado = (fileName.length() > 8 ? fileName.substring(0, 6) + ".." : fileName);
-
-                    // 2. Construimos el String usando HTML y <br>
-                    String displayText = "<html><center>" + i + "<br>" + nombreProcesado + "</center></html>";                    bloqueVisual.setText(displayText);
-                    bloqueVisual.setToolTipText("Bloque " + i + " - Archivo: " + fileName);
-                    // Ajustar fuente para que quepa mejor
-                    bloqueVisual.setForeground(Color.WHITE);
-
-                    // 3. Negrita (Bold)
-                    // Usamos deriveFont para mantener la fuente actual y solo cambiar el estilo
-
-                    // 4. Centrado horizontal del componente
-                    bloqueVisual.setHorizontalAlignment(SwingConstants.CENTER);
-                    bloqueVisual.setFont(new Font(bloqueVisual.getFont().getName(), Font.BOLD, 8));
+                    // Recortamos el nombre si es muy largo para que quepa en 35px de ancho
+                    // (Aprox caben 4 o 5 letras antes de romperse)
+                    String nombreMostrar = (fileName.length() > 5 ? fileName.substring(0, 3) + ".." : fileName);
+                    
+                    // --- AQUI ESTA LA MAGIA DEL HTML ---
+                    // <center> para centrar todo
+                    // i + "<br>" pone el ID y un salto de linea
+                    // nombreMostrar pone el archivo abajo
+                    String htmlText = "<html><center>" + i + "<br>" + nombreMostrar + "</center></html>";
+                    
+                    bloqueVisual.setText(htmlText);
+                    bloqueVisual.setToolTipText("Bloque " + i + " - Archivo: " + fileName); // Nombre completo al pasar mouse
+                    
+                    // Letra un poco más chica y negrita para que se lea bien en blanco
+                    bloqueVisual.setFont(new Font("SansSerif", Font.BOLD, 9)); 
                 } else {
+                    // Si está ocupado pero no sabemos el nombre (raro), solo mostramos ID
                     bloqueVisual.setText(String.valueOf(i));
                     bloqueVisual.setToolTipText("Bloque " + i + " - Ocupado");
                 }
             }
         }
-        // Repintar cambios
         panelCuadricula.repaint();
     }
     
-    /**
-     * Método sobrecargado para mantener compatibilidad con código existente
-     */
     public void actualizarVista(Disk disk) {
         actualizarVista(disk, null);
     }
