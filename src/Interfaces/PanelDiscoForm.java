@@ -15,8 +15,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-//import java.util.ArrayList;
-//import java.util.List;
 import CoreV2.Lista;
 import java.awt.FlowLayout;
 import javax.swing.BorderFactory;
@@ -26,28 +24,25 @@ import javax.swing.SwingConstants;
 
 public class PanelDiscoForm extends javax.swing.JPanel {
 
-    // --- VARIABLES PROPIAS ---
     private Lista<JLabel> bloquesVisuales;
     private int totalBloques;
     
-    // Colores para los estados
-    private final Color COLOR_LIBRE = new Color(144, 238, 144); // Verde
-    private final Color COLOR_OCUPADO = new Color(255, 102, 102); // Rojo
+    private final Color COLOR_LIBRE = new Color(144,183,221); 
+    private final Color COLOR_OCUPADO = new Color(0,51,102);
 
     public PanelDiscoForm() {
-        initComponents(); // Esto inicia los componentes visuales (el panelCuadricula)
+        initComponents(); 
     }
 
-    /**
-     * Este método lo llamaremos desde el Main o la Ventana Principal
-     * para generar los cuadritos dinámicamente.
-     */
     public void inicializarCuadricula(int totalBloques) {
+        
         this.totalBloques = totalBloques;
         
         this.bloquesVisuales = new Lista<>();
         
         // 1. Configuración del panel contenedor
+        
+        panelCuadricula.setBackground(new java.awt.Color(225,246,255));
         panelCuadricula.removeAll();
         panelCuadricula.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         
@@ -67,8 +62,8 @@ public class PanelDiscoForm extends javax.swing.JPanel {
             bloque.setBackground(COLOR_LIBRE);
             bloque.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             
-            // --- CAMBIO SOLICITADO: 35 de ancho x 50 de alto ---
-            bloque.setPreferredSize(new Dimension(35, 45)); 
+            // --- CAMBIO SOLICITADO: n de ancho x m de alto ---
+            bloque.setPreferredSize(new Dimension(50, 45)); 
             
             // Fuente base pequeña
             bloque.setFont(new Font("SansSerif", Font.PLAIN, 10)); 

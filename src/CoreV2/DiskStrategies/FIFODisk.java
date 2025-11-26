@@ -32,11 +32,10 @@ public class FIFODisk implements ISchedullingDiskAlgorithm  {
     
     @Override
     public Petition obtenerSiguientePeticion() {
-        return colaPeticiones.pollPeticion(); // FIFO: primero en entrar, primero en salir
+        return colaPeticiones.pollPeticion(); 
     }
     
     @Override
     public void setCurrentHeadPosition(int position) {
-        // FIFO doesn't need head position
     }
 }

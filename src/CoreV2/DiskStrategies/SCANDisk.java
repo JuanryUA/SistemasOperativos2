@@ -18,7 +18,7 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
     public Cola colaPeticiones = new Cola();
     private SchedulingDiskType type = SchedulingDiskType.SCAN;
     private int currentHeadPosition = 0;
-    private boolean movingRight = true; // Direction of head movement
+    private boolean movingRight = true; 
     
     @Override
     public SchedulingDiskType getSchedulingDiskType() {
@@ -46,7 +46,6 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
             return null;
         }
         
-        // Collect all petitions
         Lista<Petition> petitions = new Lista<>();
         Nodo actual = colaPeticiones.getFrente();
         while (actual != null) {
@@ -61,15 +60,14 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
             return null;
         }
         
-        // Separate petitions into those ahead and behind
         Lista<Petition> ahead = new Lista<>();
         Lista<Petition> behind = new Lista<>();
-        Petition atCurrent = null; // Request at current head position
+        Petition atCurrent = null;
         
         for (int i = 0; i < petitions.size(); i++) {
             Petition p = petitions.get(i);
             if (p.getTrack() == currentHeadPosition) {
-                atCurrent = p; // Prioritize request at current position
+                atCurrent = p; 
             } else if (p.getTrack() > currentHeadPosition) {
                 ahead.add(p);
             } else {
@@ -77,35 +75,29 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
             }
         }
         
-        // If there's a request at current position, serve it first
         if (atCurrent != null) {
             colaPeticiones.remove(atCurrent);
             return atCurrent;
         }
         
-        // Sort ahead in ascending order, behind in descending order
         ahead.sort(Comparator.comparingInt(Petition::getTrack));
         behind.sort(Comparator.comparingInt(Petition::getTrack).reversed());
         
         Petition next = null;
         
         if (movingRight) {
-            // Moving right: serve requests ahead first
             if (!ahead.isEmpty()) {
                 next = ahead.get(0);
             } else {
-                // No requests ahead, change direction and serve the highest behind
                 movingRight = false;
                 if (!behind.isEmpty()) {
                     next = behind.get(0);
                 }
             }
         } else {
-            // Moving left: serve requests behind first
             if (!behind.isEmpty()) {
                 next = behind.get(0);
             } else {
-                // No requests behind, change direction and serve the lowest ahead
                 movingRight = true;
                 if (!ahead.isEmpty()) {
                     next = ahead.get(0);
@@ -115,7 +107,6 @@ public class SCANDisk implements ISchedullingDiskAlgorithm {
         
         if (next != null) {
             colaPeticiones.remove(next);
-            // Update direction based on next request
             if (next.getTrack() > currentHeadPosition) {
                 movingRight = true;
             } else if (next.getTrack() < currentHeadPosition) {

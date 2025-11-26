@@ -11,10 +11,10 @@ package CoreV2;
  */
 public class Directorio {
     private String nombre;
-    private String ruta; // Full path like "root/x/y/z"
-    private Directorio padre; // Parent directory
-    private Lista<Directorio> subdirectorios; // Child directories
-    private Lista<Archivo> archivos; // Files in this directory
+    private String ruta; 
+    private Directorio padre; 
+    private Lista<Directorio> subdirectorios; 
+    private Lista<Archivo> archivos;
     
     public Directorio(String nombre, Directorio padre) {
         this.nombre = nombre;
@@ -22,9 +22,8 @@ public class Directorio {
         this.subdirectorios = new Lista<>();
         this.archivos = new Lista<>();
         
-        // Calculate full path
         if (padre == null) {
-            this.ruta = nombre; // Root directory
+            this.ruta = nombre; 
         } else {
             if (padre.getRuta().equals("root")) {
                 this.ruta = padre.getRuta() + "/" + nombre;
@@ -40,7 +39,6 @@ public class Directorio {
     
     public void setNombre(String nombre) {
         this.nombre = nombre;
-        // Update path if name changes
         if (padre == null) {
             this.ruta = nombre;
         } else {
@@ -80,18 +78,14 @@ public class Directorio {
         archivos.remove(archivo);
     }
     
-    /**
-     * Calculate the total size of this directory (sum of all files)
-     */
+
     public int calcularTamano() {
         int tamano = 0;
         
-        // Sum sizes of all files in this directory
         for (int i = 0; i < archivos.size(); i++) {
             tamano += archivos.get(i).getTamano();
         }
         
-        // Recursively sum sizes of all subdirectories
         for (int i = 0; i < subdirectorios.size(); i++) {
             tamano += subdirectorios.get(i).calcularTamano();
         }
@@ -99,9 +93,7 @@ public class Directorio {
         return tamano;
     }
     
-    /**
-     * Find a subdirectory by name
-     */
+
     public Directorio buscarSubdirectorio(String nombre) {
         for (int i = 0; i < subdirectorios.size(); i++) {
             Directorio dir = subdirectorios.get(i);
@@ -112,9 +104,7 @@ public class Directorio {
         return null;
     }
     
-    /**
-     * Find a file by name in this directory
-     */
+
     public Archivo buscarArchivo(String nombre) {
         for (int i = 0; i < archivos.size(); i++) {
             Archivo arch = archivos.get(i);
@@ -125,23 +115,17 @@ public class Directorio {
         return null;
     }
     
-    /**
-     * Check if a file or directory with the given name exists in this directory
-     */
+
     public boolean existe(String nombre) {
         return buscarArchivo(nombre) != null || buscarSubdirectorio(nombre) != null;
     }
     
-    /**
-     * Delete this directory and all its contents recursively
-     */
+
     public void eliminarRecursivo() {
-        // Delete all files
         while (!archivos.isEmpty()) {
             archivos.remove(archivos.get(0));
         }
         
-        // Recursively delete all subdirectories
         while (!subdirectorios.isEmpty()) {
             Directorio subdir = subdirectorios.get(0);
             subdir.eliminarRecursivo();
@@ -149,18 +133,14 @@ public class Directorio {
         }
     }
     
-    /**
-     * Get all files recursively from this directory and all subdirectories
-     */
+
     public Lista<Archivo> obtenerTodosLosArchivos() {
         Lista<Archivo> todos = new Lista<>();
         
-        // Add files from this directory
         for (int i = 0; i < archivos.size(); i++) {
             todos.add(archivos.get(i));
         }
         
-        // Recursively add files from subdirectories
         for (int i = 0; i < subdirectorios.size(); i++) {
             Lista<Archivo> archivosSubdir = subdirectorios.get(i).obtenerTodosLosArchivos();
             todos.addAll(archivosSubdir);

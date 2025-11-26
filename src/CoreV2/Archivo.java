@@ -12,30 +12,28 @@ package CoreV2;
 public class Archivo {
     private String nombre;
     private int tamano; 
-    private String ruta; // Directory path like "root/x/y/z"
+    private String ruta; 
     
-    // Tu idea de la lista de bloques. ¡Perfecta!
-    // Guardamos los IDs de los bloques que ocupa.
     private Lista<Integer> bloquesAsignados; 
-    private String processName; // Nombre del proceso que creó este archivo
-    private String tipoArchivo; // "publico" o "privado"
+    private String processName; 
+    private String tipoArchivo; 
 
     public Archivo(String nombre, int tamano) {
         this.nombre = nombre;
         this.tamano = tamano;
-        this.ruta = "root"; // Default to root
+        this.ruta = "root"; 
         this.bloquesAsignados = new Lista<>();    
         this.processName = null;
-        this.tipoArchivo = "publico"; // Default
+        this.tipoArchivo = "publico"; 
     }
     
     public Archivo(String nombre, int tamano, String processName) {
         this.nombre = nombre;
         this.tamano = tamano;
-        this.ruta = "root"; // Default to root
+        this.ruta = "root"; 
         this.bloquesAsignados = new Lista<>();    
         this.processName = processName;
-        this.tipoArchivo = "publico"; // Default
+        this.tipoArchivo = "publico"; 
     }
     
     public Archivo(String nombre, int tamano, String ruta, String processName) {
@@ -44,7 +42,7 @@ public class Archivo {
         this.ruta = ruta != null ? ruta : "root";
         this.bloquesAsignados = new Lista<>();    
         this.processName = processName;
-        this.tipoArchivo = "publico"; // Default
+        this.tipoArchivo = "publico"; 
     }
     
     public Archivo(String nombre, int tamano, String ruta, String processName, String tipoArchivo) {
@@ -56,14 +54,12 @@ public class Archivo {
         this.tipoArchivo = tipoArchivo != null ? tipoArchivo : "publico";
     }
 
-    // --- Getters y Setters ---
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
     public int getTamano() { return tamano; }
     public void setTamano(int tamano) { this.tamano = tamano; }
     public Lista<Integer> getBloquesAsignados() { return bloquesAsignados; }
     
-    // 2. NECESITAS este método para guardar los bloques después
     public void setBloquesAsignados(Lista<Integer> bloquesAsignados) {
         this.bloquesAsignados = bloquesAsignados;
     }

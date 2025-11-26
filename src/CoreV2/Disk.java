@@ -15,7 +15,6 @@ import java.util.concurrent.Semaphore;
 class DiskBlock {
     public int id;
     public boolean estaLibre;
-    // public Archivo archivo; // (Opcional, para saber qué archivo está aquí)
 
     public DiskBlock(int id) {
         this.id = id;
@@ -26,39 +25,36 @@ class DiskBlock {
 public class Disk {
     private final Semaphore mutex = new Semaphore(1); 
     
-    private final Lista<DiskBlock> bloques; // El disco físico
+    private final Lista<DiskBlock> bloques; 
     private int bloquesTotales;
     private int bloquesDisponibles;
     
-    // --- ¡NUEVO CONSTRUCTOR! ---
     public Disk(int cantidadBloques) {
         this.bloquesTotales = cantidadBloques;
         this.bloquesDisponibles = cantidadBloques;
         this.bloques = new Lista<>();
         for (int i = 0; i < cantidadBloques; i++) {
-            bloques.add(new DiskBlock(i)); // Crea los bloques, 0, 1, 2...
+            bloques.add(new DiskBlock(i)); 
         }
     }
     
     
     public Lista<Integer> asignarBloques(int cantidadNecesaria) {
         try {
-            mutex.acquire(); // Protege la lista de bloques
+            mutex.acquire(); 
             
-            // 1. Validar si hay espacio (¡como dijiste!)
             if (cantidadNecesaria > this.bloquesDisponibles) {
                 System.out.println("Disk: ¡Error! No hay espacio. Necesita " + cantidadNecesaria + 
                                    ", disponibles " + this.bloquesDisponibles);
-                return null; // No hay espacio
+                return null; 
             }
 
             Lista<Integer> bloquesAsignados = new Lista<>();
             int encontrados = 0;
             
-            // 2. Buscar los bloques libres (no contiguos)
             for (int i = 0; i < bloques.size(); i++) {
                 if (encontrados == cantidadNecesaria) {
-                    break; // Ya tenemos suficientes
+                    break; 
                 }
                 
                 DiskBlock bloque = bloques.get(i);
@@ -69,7 +65,6 @@ public class Disk {
                 }
             }
 
-            // 3. Actualizar contador y retornar la lista de IDs
             this.bloquesDisponibles -= cantidadNecesaria;
             System.out.println("Disk: Asignados " + cantidadNecesaria + " bloques. Disponibles: " + this.bloquesDisponibles);
             return bloquesAsignados;
@@ -89,8 +84,7 @@ public class Disk {
             
             for (int i = 0; i < bloquesALiberar.size(); i++) {
                 int idBloque = bloquesALiberar.get(i);
-                // (Aquí podrías hacer bloques.get(idBloque) si sabes que el ID es el índice)
-                // Por seguridad, lo buscamos:
+               
                 for(int j = 0; j < bloques.size(); j++) {
                     if (bloques.get(j).id == idBloque) {
                         bloques.get(j).estaLibre = true;
@@ -108,14 +102,12 @@ public class Disk {
         }
     }
     
-    // --- MÉTODOS PARA LA INTERFAZ GRÁFICA ---
     public boolean esBloqueLibre(int index) {
         try {
-            mutex.acquire(); // Importante: usar el semáforo para leer
+            mutex.acquire(); 
             if (index < 0 || index >= bloques.size()) {
-                 return false; // O manejar error
+                 return false; 
             }
-            // Accedemos al bloque usando tu Lista genérica
             DiskBlock b = bloques.get(index); 
             return b.estaLibre;
             

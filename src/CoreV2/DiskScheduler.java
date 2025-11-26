@@ -14,19 +14,17 @@ import CoreV2.DiskStrategies.ISchedullingDiskAlgorithm;
 public class DiskScheduler {
     private ISchedullingDiskAlgorithm algoritmoDisk;
     private FileSystem fileSystem;
-    private int currentHeadPosition; // Current disk head position (track/cylinder)
+    private int currentHeadPosition;
     
     public DiskScheduler(ISchedullingDiskAlgorithm algoritmoInicial) {
         this.algoritmoDisk = algoritmoInicial;
-        this.currentHeadPosition = 0; // Start at track 0
+        this.currentHeadPosition = 0; 
     }
     
     public Petition obtenerSiguientePeticion() {
-        // Update algorithm with current head position before getting next request
         algoritmoDisk.setCurrentHeadPosition(this.currentHeadPosition);
         Petition siguiente = algoritmoDisk.obtenerSiguientePeticion();
         if (siguiente != null) {
-            // Update head position to the track of the processed request
             this.currentHeadPosition = siguiente.getTrack();
         }
         return siguiente;
@@ -51,7 +49,6 @@ public class DiskScheduler {
     
     
     public void setFileSystem(FileSystem fileSystem){
-        // Configura el algoritmo INICIAL con la cola
         this.fileSystem=fileSystem;
         this.algoritmoDisk.setColaPeticiones(fileSystem.getColaPeticiones());
     }
@@ -61,7 +58,6 @@ public class DiskScheduler {
         if (this.fileSystem != null) {
             this.algoritmoDisk.setColaPeticiones(fileSystem.getColaPeticiones());
         }
-        // Update the algorithm with current head position
         this.algoritmoDisk.setCurrentHeadPosition(this.currentHeadPosition);
     }
     

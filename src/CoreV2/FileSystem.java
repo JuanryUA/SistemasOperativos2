@@ -7,7 +7,7 @@ package CoreV2;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.concurrent.Semaphore; // <-- ¡IMPORTANTE!
+import java.util.concurrent.Semaphore; 
 import CoreV2.DiskStrategies.ISchedullingDiskAlgorithm.SchedulingDiskType;
 import CoreV2.Map;      
 import CoreV2.HashMap;  
@@ -20,42 +20,37 @@ public class FileSystem {
     private Disk disk;
     private DiskScheduler diskScheduler; 
     private Lista<Archivo> tablaDeArchivos = new Lista<Archivo>();
-    private Directorio root; // Root directory
+    private Directorio root; 
     private Map<SchedulingDiskType, Long> tiempoTotalPorPolitica;
     private Map<SchedulingDiskType, Integer> cantidadPorPolitica;
     
 
-    // vvv ¡AÑADE ESTE GUARDIA! vvv
-    private final Semaphore mutexCola = new Semaphore(1); // 1 = solo 1 hilo puede pasar
+    private final Semaphore mutexCola = new Semaphore(1); 
     
-    // --- GUARDIA #2: "El Obrero" ---
-    // Simula que solo hay UN disco físico.
-    private volatile boolean estaOcupado = false; // ¡volatile es importante!
+
+    private volatile boolean estaOcupado = false; 
 
     public FileSystem(Disk disk, DiskScheduler diskScheduler) {
         this.disk=disk;
         this.diskScheduler=diskScheduler;
         this.colaPeticiones = new Cola();
-        this.root = new Directorio("root", null); // Initialize root directory
+        this.root = new Directorio("root", null);
         
         this.tiempoTotalPorPolitica = new HashMap<>();
         this.cantidadPorPolitica = new HashMap<>();
         
-        // Pre-llenar con ceros usando tu put()
         for (SchedulingDiskType type : SchedulingDiskType.values()) {
             tiempoTotalPorPolitica.put(type, 0L);
             cantidadPorPolitica.put(type, 0);
         }
     }
     
-    // --- MÉTODO PARA REGISTRAR (Usando tu getOrDefault) ---
     private void registrarEstadistica(long tiempoInicio) {
         long tiempoFinal = System.currentTimeMillis();
         long duracion = tiempoFinal - tiempoInicio;
         
         SchedulingDiskType tipoActual = diskScheduler.getAlgoritmo().getSchedulingDiskType();
         
-        // Usamos TUS métodos getOrDefault y put
         long totalActual = tiempoTotalPorPolitica.getOrDefault(tipoActual, 0L);
         tiempoTotalPorPolitica.put(tipoActual, totalActual + duracion);
         
@@ -67,13 +62,10 @@ public class FileSystem {
         StringBuilder sb = new StringBuilder();
         sb.append("=== TIEMPO PROMEDIO DE EJECUCIÓN (ms) ===\n\n");
         
-        // Recorremos el ENUM, no el mapa
         for (SchedulingDiskType type : SchedulingDiskType.values()) {
-            // Usamos TU get()
             Long totalObj = tiempoTotalPorPolitica.get(type);
             Integer countObj = cantidadPorPolitica.get(type);
             
-            // Manejo de nulos por seguridad (aunque pre-llenamos)
             long total = (totalObj != null) ? totalObj : 0L;
             int count = (countObj != null) ? countObj : 0;
             
@@ -87,9 +79,7 @@ public class FileSystem {
     
     public void agregarPeticion(FileData fileData){
         try {
-            // vvv ¡AÑADE ESTO! vvv
-            // El hilo (P1, P2, P3) pide permiso para usar el disco.
-            // P1 entra. P2 y P3 se quedan aquí esperando en fila.
+
             mutexCola.acquire();
             System.out.println("[FS] El FileSystem ha recibido al DMA del proceso " + fileData.getProcessName());
             System.out.println("        FileSystem: OCUPADO por " + fileData.getFileName());
@@ -100,29 +90,22 @@ public class FileSystem {
 
 
             } catch (InterruptedException ex) {
-//            Logger.getLogger(FileSystem.class.getName()).log(Level.SEVERE, null, ex);
 Thread.currentThread().interrupt();
         } finally {
-            // vvv ¡AÑADE ESTO! vvv
-            // P1 termina y suelta el permiso.
-            // Ahora P2 (que estaba esperando en 'acquire') puede entrar.
-//            System.out.println("        FileSystem: Disco LIBRE.");
+        
             mutexCola.release();
         }
     }
     
     public void getNextPeticion(){
-        // 1. Si el disco ya está trabajando (GUARDIA #2 activo), no hagas nada.
         if (estaOcupado) {
             return; 
         }
         
-        // 2. Si está libre, ¿hay trabajo? (Revisar CON mutexCola)
         Petition siguiente = null;
         try {
             mutexCola.acquire();
             if (diskScheduler.hayPeticiones()) {
-                // ¡FIFO saca la peticion!
                 siguiente = diskScheduler.obtenerSiguientePeticion(); 
             }
         } catch (InterruptedException e) { /*...*/ } 
@@ -130,13 +113,11 @@ Thread.currentThread().interrupt();
             mutexCola.release();
         }
         
-        // 3. Si sacamos una petición, haz el trabajo
         if (siguiente != null) {
-            estaOcupado = true; // <-- Ocupa el disco (Activa GUARDIA #2)
+            estaOcupado = true; 
             String algorithmName = diskScheduler.getAlgoritmo().getSchedulingDiskType().name();
             System.out.println("        FileSystem: OCUPADO. Procesando (" + algorithmName + "): " + siguiente.getFileName());
             
-            // Route to the correct operation based on operation type
             FileData data = siguiente.getFileData();
             switch (data.getOperationType()) {
                 case CREATE:
@@ -173,13 +154,11 @@ Thread.currentThread().interrupt();
     public void createFile(Petition peticionDeLaCola){
         new Thread(() -> { 
             try {
-                // --- INICIO DE LA LÓGICA REAL ---
                 FileData data = peticionDeLaCola.getFileData();
                 String nombre = data.getFileName();
                 int tamano = data.getFileSize();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
                 
-                // 1. Find the target directory
                 Directorio directorioDestino = buscarDirectorioPorRuta(ruta);
                 if (directorioDestino == null) {
                     System.out.println("FileSystem: Error, el directorio '" + ruta + "' no existe.");
@@ -190,7 +169,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // 2. Validar si ya existe en el mismo directorio
                 if (directorioDestino.buscarArchivo(nombre) != null) {
                     System.out.println("FileSystem: Error, el archivo '" + nombre + "' ya existe en el directorio '" + ruta + "'.");
                     data.setErrorMessage("El archivo '" + nombre + "' ya existe en el directorio '" + ruta + "'.");
@@ -200,27 +178,19 @@ Thread.currentThread().interrupt();
                     return;
                 }
 
-                // 3. Pedir bloques al disco (¡tu idea!)
-                // (Simulamos que esto tarda tiempo)
-                Thread.sleep(1000); // Simula el tiempo de búsqueda de bloques
-                // Pedimos los bloques al disco (esto sigue igual)
+                Thread.sleep(1000);
                 Lista<Integer> bloquesAsignados = disk.asignarBloques(tamano);
                 
-                // 4. Validar si se pudo
                 if (bloquesAsignados == null) {
-                    // No hay espacio
                     System.out.println("FileSystem: Error, no hay espacio para '" + nombre + "'.");
                     data.setErrorMessage("No hay espacio suficiente en el disco.");
                 } else {
-                    // Creamos el archivo con nombre, tamaño, ruta, proceso que lo creó y tipo
                     String processName = data.getProcessName();
                     String tipoArchivo = data.getTipoArchivo() != null ? data.getTipoArchivo() : "publico";
                     Archivo nuevoArchivo = new Archivo(nombre, tamano, ruta, processName, tipoArchivo);
 
-                    // Y ahora le asignamos los bloques que nos dio el disco
                     nuevoArchivo.setBloquesAsignados(bloquesAsignados);
 
-                    // Add to both the global list and the directory
                     tablaDeArchivos.add(nuevoArchivo);
                     directorioDestino.agregarArchivo(nuevoArchivo);
                     
@@ -231,7 +201,6 @@ Thread.currentThread().interrupt();
                                 
             } catch (InterruptedException ex) { /*...*/ } 
             finally {
-                // ¡Avisa al DMA que terminaste (con éxito o error)!
                 registrarEstadistica(peticionDeLaCola.getTiempoInicio());
                 peticionDeLaCola.getFileData().setIsProcessed(true); 
                 estaOcupado = false; // <-- Libera el disco
@@ -253,7 +222,6 @@ Thread.currentThread().interrupt();
 //        }).start();
     }
     
-    // Helper para buscar un archivo en nuestra 'tablaDeArchivos' (global search)
     private Archivo buscarArchivo(String nombre) {
         System.out.println(         "TABLA DE ARCHIVO: "+ tablaDeArchivos);
         for (int i = 0; i < tablaDeArchivos.size(); i++) {
@@ -262,10 +230,9 @@ Thread.currentThread().interrupt();
                 return actual;
             }
         }
-        return null; // No encontrado
+        return null; 
     }
     
-    // Helper para buscar un archivo por nombre y ruta
     private Archivo buscarArchivoPorRuta(String nombre, String ruta) {
         Directorio dir = buscarDirectorioPorRuta(ruta);
         if (dir != null) {
@@ -274,19 +241,16 @@ Thread.currentThread().interrupt();
         return null;
     }
     
-    // Helper para buscar un directorio por ruta (e.g., "root/x/y/z")
     private Directorio buscarDirectorioPorRuta(String ruta) {
         if (ruta == null || ruta.isEmpty() || ruta.equals("root")) {
             return root;
         }
         
-        // Remove "root/" prefix if present
         String path = ruta.startsWith("root/") ? ruta.substring(5) : ruta;
         if (path.isEmpty()) {
             return root;
         }
         
-        // Split path and navigate
         String[] partes = path.split("/");
         Directorio actual = root;
         
@@ -302,33 +266,27 @@ Thread.currentThread().interrupt();
         return actual;
     }
     
-    // Create a directory at the specified path
-// Cambiamos 'void' por 'String' para devolver el mensaje
     public String crearDirectorio(String ruta, String nombreDirectorio) {
         Directorio directorioPadre = buscarDirectorioPorRuta(ruta);
         
-        // 1. Error: Ruta padre no existe
         if (directorioPadre == null) {
             String msg = "Error: El directorio padre '" + ruta + "' no existe.";
             System.out.println("FileSystem: " + msg);
             return msg; // <--- Devolvemos el error
         }
         
-        // 2. Error: Ya existe algo con ese nombre
         if (directorioPadre.existe(nombreDirectorio)) {
             String msg = "Error: Ya existe un archivo o directorio con el nombre '" + nombreDirectorio + "' en '" + ruta + "'.";
             System.out.println("FileSystem: " + msg);
             return msg; // <--- Devolvemos el error
         }
         
-        // 3. Éxito
         Directorio nuevoDirectorio = new Directorio(nombreDirectorio, directorioPadre);
         directorioPadre.agregarSubdirectorio(nuevoDirectorio);
         System.out.println("FileSystem: Directorio '" + nombreDirectorio + "' creado en '" + ruta + "'.");
-        return null; // <--- null significa "Todo bien, no hubo error"
+        return null; 
     }
     
-    // Delete a directory and all its contents
     public void eliminarDirectorio(String ruta, String nombreDirectorio) {
         Directorio directorioPadre = buscarDirectorioPorRuta(ruta);
         if (directorioPadre == null) {
@@ -342,21 +300,17 @@ Thread.currentThread().interrupt();
             return;
         }
         
-        // Get all files in this directory and subdirectories
         Lista<Archivo> archivosAEliminar = directorioAEliminar.obtenerTodosLosArchivos();
         
-        // Free blocks for all files
         for (int i = 0; i < archivosAEliminar.size(); i++) {
             Archivo arch = archivosAEliminar.get(i);
             Lista<Integer> bloques = arch.getBloquesAsignados();
             if (bloques != null && bloques.size() > 0) {
                 disk.liberarBloques(bloques);
             }
-            // Remove from global list
             tablaDeArchivos.remove(arch);
         }
         
-        // Recursively delete directory
         directorioAEliminar.eliminarRecursivo();
         directorioPadre.eliminarSubdirectorio(directorioAEliminar);
         
@@ -374,12 +328,7 @@ Thread.currentThread().interrupt();
     public Directorio getRoot() {
         return root;
     }
-    
-    /**
-     * Obtiene el nombre del archivo que ocupa un bloque específico
-     * @param blockNumber El número del bloque
-     * @return El nombre del archivo que ocupa ese bloque, o null si está libre
-     */
+
     public String getFileNameFromBlock(int blockNumber) {
         for (int i = 0; i < tablaDeArchivos.size(); i++) {
             Archivo arch = tablaDeArchivos.get(i);
@@ -390,7 +339,7 @@ Thread.currentThread().interrupt();
                 }
             }
         }
-        return null; // Bloque libre
+        return null; 
     }
     
     public void deleteFile(Petition peticionDeLaCola) {
@@ -401,7 +350,6 @@ Thread.currentThread().interrupt();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
                 String modoUsuario = data.getModoUsuario() != null ? data.getModoUsuario() : "Usuario";
                 
-                // Validar permisos: Solo administrador puede eliminar
                 if ("Usuario".equals(modoUsuario)) {
                     System.out.println("FileSystem: Error, el usuario no tiene permisos para eliminar archivos.");
                     data.setErrorMessage("Acceso denegado: Solo el administrador puede eliminar archivos.");
@@ -411,7 +359,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Buscar el archivo en el directorio especificado
                 Archivo archivo = buscarArchivoPorRuta(nombre, ruta);
                 
                 if (archivo == null) {
@@ -423,16 +370,13 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Simular tiempo de operación
                 Thread.sleep(1000);
                 
-                // Liberar los bloques del archivo
                 Lista<Integer> bloquesALiberar = archivo.getBloquesAsignados();
                 if (bloquesALiberar != null && bloquesALiberar.size() > 0) {
                     disk.liberarBloques(bloquesALiberar);
                 }
                 
-                // Eliminar el archivo de la tabla y del directorio
                 tablaDeArchivos.remove(archivo);
                 Directorio dir = buscarDirectorioPorRuta(ruta);
                 if (dir != null) {
@@ -460,7 +404,6 @@ Thread.currentThread().interrupt();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
                 String modoUsuario = data.getModoUsuario() != null ? data.getModoUsuario() : "Usuario";
                 
-                // Buscar el archivo en el directorio especificado
                 Archivo archivo = buscarArchivoPorRuta(nombre, ruta);
                 
                 if (archivo == null) {
@@ -472,7 +415,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Validar permisos: Usuario solo puede leer archivos públicos
                 if ("Usuario".equals(modoUsuario) && "privado".equals(archivo.getTipoArchivo())) {
                     System.out.println("FileSystem: Error, el usuario no tiene permisos para leer el archivo privado '" + nombre + "'.");
                     data.setErrorMessage("Acceso denegado: No tiene permisos para leer archivos privados del sistema.");
@@ -482,7 +424,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Simular tiempo de lectura
                 Thread.sleep(1500);
                 
                 System.out.println("FileSystem: Archivo '" + nombre + "' LEÍDO (solo lectura, sin modificaciones) de '" + ruta + "'.");
@@ -507,7 +448,6 @@ Thread.currentThread().interrupt();
                 String ruta = data.getRuta() != null ? data.getRuta() : "root";
                 String modoUsuario = data.getModoUsuario() != null ? data.getModoUsuario() : "Usuario";
                 
-                // Validar permisos: Solo administrador puede actualizar
                 if ("Usuario".equals(modoUsuario)) {
                     System.out.println("FileSystem: Error, el usuario no tiene permisos para actualizar archivos.");
                     data.setErrorMessage("Acceso denegado: Solo el administrador puede actualizar archivos.");
@@ -517,7 +457,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Validar que el nuevo nombre no esté vacío
                 if (nombreNuevo == null || nombreNuevo.isEmpty()) {
                     System.out.println("FileSystem: Error, el nuevo nombre no puede estar vacío.");
                     data.setErrorMessage("El nuevo nombre no puede estar vacío.");
@@ -527,7 +466,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Buscar el archivo en el directorio especificado
                 Archivo archivo = buscarArchivoPorRuta(nombreViejo, ruta);
                 
                 if (archivo == null) {
@@ -539,7 +477,6 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Validar que el nuevo nombre no exista ya en el mismo directorio
                 Directorio dir = buscarDirectorioPorRuta(ruta);
                 if (dir != null && dir.buscarArchivo(nombreNuevo) != null) {
                     System.out.println("FileSystem: Error, el archivo '" + nombreNuevo + "' ya existe en '" + ruta + "'.");
@@ -550,10 +487,8 @@ Thread.currentThread().interrupt();
                     return;
                 }
                 
-                // Simular tiempo de operación
                 Thread.sleep(1000);
                 
-                // Actualizar el nombre del archivo
                 archivo.setNombre(nombreNuevo);
                 System.out.println("FileSystem: Archivo '" + nombreViejo + "' RENOMBRADO a '" + nombreNuevo + "' con éxito en '" + ruta + "'.");
                 

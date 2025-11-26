@@ -10,29 +10,36 @@ package CoreV2;
  * @author verol
  */
 public class Petition {
+    private static int contadorGlobal = 0;
+    private int id;
     private String fileName;
-    private int fileSize; //tamano en bloques del futuro archivo
+    private int fileSize;
     private FileData filedata;
-    private int track; // Track/cylinder number for disk scheduling
+    private int track; 
     private long tiempoInicio;
     
-    //LUEGO ANADIR DIRECTORIO
 
     public Petition(FileData filedata) {
+        this.id = ++contadorGlobal;
         this.fileName=filedata.getFileName();
         this.fileSize=filedata.getFileSize();
         this.filedata =filedata;
-        // Generate track number based on filename hash (0-199 tracks)
+    
         this.track = Math.abs(fileName.hashCode()) % 200;
         this.tiempoInicio = System.currentTimeMillis();
     }
     
     public Petition(FileData filedata, int track) {
+        this.id = ++contadorGlobal;
         this.fileName=filedata.getFileName();
         this.fileSize=filedata.getFileSize();
         this.filedata =filedata;
         this.track = track;
         this.tiempoInicio = System.currentTimeMillis();
+    }
+    
+    public int getId() {
+        return id;
     }
 
     public String getFileName() {

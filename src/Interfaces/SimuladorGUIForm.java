@@ -47,80 +47,78 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class SimuladorGUIForm extends javax.swing.JFrame {
 
-    // --- 1. VARIABLES DEL BACKEND (AÑADIR ESTO) ---
     private Disk disk;
     private FileSystem fileSystem;
     private OperatingSystem so; 
     private Timer timerActualizacion;
-    private java.util.Set<String> procesosProcesados = new java.util.HashSet<>(); // Para evitar mostrar popups duplicados
-    private javax.swing.JTree jTreeDirectorio; // JTree for directory structure
-    private String modoUsuario = "Administrador"; // Modo actual: "Administrador" o "Usuario"
-    private javax.swing.JScrollPane jScrollPaneTree; // Scroll pane for JTree
-    private javax.swing.JTextField txtRutaDirectorio; // Directory path input
-    private javax.swing.JButton btnCrearDirectorio; // Button to create directory
-    private javax.swing.JButton btnEliminarDirectorio; // Button to delete directory
-    private javax.swing.JLabel labelInfoNombre; // Label to display selected item name
-    private javax.swing.JLabel labelInfoTamano; // Label to display selected item size
-    private javax.swing.JPanel panelInfo; // Panel to display file/directory info
+    private java.util.Set<String> procesosProcesados = new java.util.HashSet<>(); 
+    private javax.swing.JTree jTreeDirectorio; 
+    private String modoUsuario = "Administrador"; 
+    private javax.swing.JScrollPane jScrollPaneTree; 
+    private javax.swing.JTextField txtRutaDirectorio; 
+    private javax.swing.JButton btnCrearDirectorio; 
+    private javax.swing.JButton btnEliminarDirectorio;
+    private javax.swing.JLabel labelInfoNombre;
+    private javax.swing.JLabel labelInfoTamano; 
+    private javax.swing.JPanel panelInfo; 
+    private Interfaces.PanelColaPeticiones miPanelCola;
 
-    /**
-     * Constructor vacío para el diseñador visual (NetBeans lo usa)
-     */
+
     public SimuladorGUIForm() {
         initComponents();
     }
 
-    // --- 2. CONSTRUCTOR REAL (AÑADIR ESTO) ---
-    // Este es el que llamarás desde el Main.java
     public SimuladorGUIForm(Disk disk, FileSystem fileSystem, OperatingSystem so) {
+//        this.getContentPane().setBackground(new java.awt.Color(215, 235, 255));
+        this.getContentPane().setBackground(new java.awt.Color(225,246,255));
         this.disk = disk;
         this.fileSystem = fileSystem;
         this.so = so; 
         
-        initComponents(); // Inicia lo visual
+        initComponents(); 
       
         java.io.PrintStream originalOut = System.out;
         
        
         java.io.PrintStream printStream = new java.io.PrintStream(new CustomOutputStream(txtLog, lblTic, originalOut));       
         
-        System.setOut(printStream); // Redirige la salida estándar (System.out.println)
-        System.setErr(printStream); // Opcional: Redirige también los errores (System.err.println)
+        System.setOut(printStream);
+        System.setErr(printStream); 
         
-        configurarVentana(); // Configuración extra
-        iniciarTimer();      // Arranca el refresco automático
+        configurarVentana(); 
+        iniciarTimer();      
+        
+        miPanelCola = new Interfaces.PanelColaPeticiones();
+    
+        panelContenedorCola.setLayout(new java.awt.BorderLayout());
+        panelContenedorCola.add(miPanelCola, java.awt.BorderLayout.CENTER);
+        panelContenedorCola.revalidate();
     }
     
-    // --- 3. MÉTODOS DE CONFIGURACIÓN (AÑADIR ESTO) ---
     private void configurarVentana() {
         this.setTitle("Simulador SO - Gestión de Archivos");
         this.setLocationRelativeTo(null); // Centrar en pantalla
         
-        // Inicializar la cuadrícula del panel de disco
         if (miPanelDisco != null && disk != null) {
             miPanelDisco.inicializarCuadricula(disk.getTotalBloques());
         }
         
-        // Configurar componentes adicionales
         configurarComponentesCRUD();
         configurarJTree();
         configurarDiskSchedulerCombo();
-        actualizarVisibilidadSegunModo(); // Inicializar visibilidad según modo
+        actualizarVisibilidadSegunModo();
     }
     
     private void actualizarVisibilidadSegunModo() {
         boolean esAdmin = "Administrador".equals(modoUsuario);
         
-        // Botones de directorio solo visibles para admin
         btnCrearDirectorio1.setVisible(esAdmin);
         btnEliminarDirectorio1.setVisible(esAdmin);
-        jLabel11.setVisible(esAdmin); // Label "Directorio"
+        jLabel11.setVisible(esAdmin);
         
-        // ComboBox de política de planificación solo visible para admin
         diskSchedulingCombo1.setVisible(esAdmin);
-        jLabel12.setVisible(esAdmin); // Label "Política de Planificación"
+        jLabel12.setVisible(esAdmin);
         
-        // Filtrar opciones del combo de operaciones según el modo
         FileData.OperationType[] opcionesAdmin = {
             FileData.OperationType.CREATE,
             FileData.OperationType.READ,
@@ -137,21 +135,17 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             esAdmin ? opcionesAdmin : opcionesUsuario
         ));
         
-        // Si estaba en UPDATE o DELETE y cambiamos a modo Usuario, cambiar a CREATE
         if (!esAdmin && (seleccionado == FileData.OperationType.UPDATE || 
                          seleccionado == FileData.OperationType.DELETE)) {
             comboOperacion1.setSelectedItem(FileData.OperationType.CREATE);
         } else if (esAdmin && seleccionado != null) {
-            // Restaurar selección si es admin
             comboOperacion1.setSelectedItem(seleccionado);
         }
         
-        // Actualizar inputs según la operación seleccionada
         actualizarInputsSegunOperacion();
     }
     
     private void configurarJTree() {
-        // Create JTree
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
         jTreeDirectorio = new javax.swing.JTree(rootNode);
         jTreeDirectorio.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -165,35 +159,34 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jScrollPaneTree = new javax.swing.JScrollPane(jTreeDirectorio);
         jScrollPaneTree.setPreferredSize(new java.awt.Dimension(300, 400));
         
-        // Create directory path input
         txtRutaDirectorio = new javax.swing.JTextField();
         txtRutaDirectorio1.setText("root");
         txtRutaDirectorio1.setPreferredSize(new java.awt.Dimension(200, 25));
         
-        // Create directory buttons
 
         btnEliminarDirectorio = new javax.swing.JButton("Eliminar Directorio");
         btnEliminarDirectorio1.addActionListener((ActionEvent e) -> {
             eliminarDirectorio();
         });
         
-        // Create info panel
         panelInfo = new javax.swing.JPanel();
         panelInfo.setLayout(new java.awt.FlowLayout());
         labelInfoNombre = new javax.swing.JLabel("Nombre: -");
         labelInfoTamano = new javax.swing.JLabel("Tamaño: -");
         panelInfo.add(labelInfoNombre);
         panelInfo.add(labelInfoTamano);
+        panelInfo.setBackground(new java.awt.Color(225,246,255));
+        labelInfoNombre.setForeground(new java.awt.Color(0,51,102));
+        labelInfoTamano.setForeground(new java.awt.Color(0,51,102));
+
         
-        // Add components to GUI (using absolute layout)
         getContentPane().add(jScrollPaneTree, new org.netbeans.lib.awtextra.AbsoluteConstraints(265, 120, 280, 300));
 //        getContentPane().add(new javax.swing.JLabel("Ruta:"), new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 450, -1, -1));
 //        getContentPane().add(txtRutaDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, 200, 25));
 //        getContentPane().add(btnCrearDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 480, 120, 30));
 //        getContentPane().add(btnEliminarDirectorio, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 480, 130, 30));
         getContentPane().add(panelInfo, new org.netbeans.lib.awtextra.AbsoluteConstraints(243, 425, 300, 50));
-        getContentPane().add(new javax.swing.JLabel("<html><span style='font-size:10px; font-family:Tahoma'>Estructura de Directorios</span></html>"), new org.netbeans.lib.awtextra.AbsoluteConstraints(268, 83, -1, -1));
-    }
+getContentPane().add(new javax.swing.JLabel("<html><span style='font-size:9px; font-family:Tahoma; color: rgb(0, 51, 102);'>Estructura de Directorios</span></html>"), new org.netbeans.lib.awtextra.AbsoluteConstraints(268, 83, -1, -1));    }
     
     private void crearDirectorio() {
         if (fileSystem == null) {
@@ -211,10 +204,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             String error = fileSystem.crearDirectorio(rutaPadre, nombreDirectorio.trim());
 
                 if (error != null) {
-                    // ¡Si nos devolvió texto, es un error! Mostramos el Pop-up.
                     JOptionPane.showMessageDialog(this, error, "Error al crear directorio", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    // Si devolvió null, fue un éxito. Actualizamos el árbol.
                     actualizarJTree();
                 }
         }
@@ -240,13 +231,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 return;
             }
             
-            // Get parent path
             DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) selectedNode.getParent();
             String rutaPadre = "root";
             if (parentNode != null && parentNode.getUserObject() instanceof String) {
                 String parentName = (String) parentNode.getUserObject();
                 if (!parentName.equals("root")) {
-                    // Build path from root
                     java.util.List<String> pathParts = new java.util.ArrayList<>();
                     DefaultMutableTreeNode current = parentNode;
                     while (current != null && current.getUserObject() instanceof String) {
@@ -284,11 +273,9 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         Object userObject = selectedNode.getUserObject();
         if (userObject instanceof String) {
-            // It's a directory
             String nombre = (String) userObject;
             labelInfoNombre.setText("Nombre: " + nombre);
             
-            // Calculate directory size
             if (fileSystem != null) {
                 String ruta = construirRuta(selectedNode);
                 CoreV2.Directorio dir = buscarDirectorioPorRuta(ruta);
@@ -300,7 +287,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 }
             }
         } else if (userObject instanceof Archivo) {
-            // It's a file
             Archivo arch = (Archivo) userObject;
             labelInfoNombre.setText("Nombre: " + arch.getNombre());
             labelInfoTamano.setText("Tamaño: " + arch.getTamano() + " bloques");
@@ -320,8 +306,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     
     private CoreV2.Directorio buscarDirectorioPorRuta(String ruta) {
         if (fileSystem == null) return null;
-        // Use reflection or add a public method to FileSystem
-        // For now, we'll navigate manually
         if (ruta.equals("root")) {
             return fileSystem.getRoot();
         }
@@ -349,7 +333,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private void actualizarJTree() {
         if (fileSystem == null) return;
         
-        // Save current selection path
         javax.swing.tree.TreePath selectedPath = jTreeDirectorio.getSelectionPath();
         Object selectedObject = null;
         if (selectedPath != null) {
@@ -359,7 +342,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             }
         }
         
-        // Save expanded state
         java.util.Set<Object> expandedObjects = new java.util.HashSet<>();
         for (int i = 0; i < jTreeDirectorio.getRowCount(); i++) {
             javax.swing.tree.TreePath path = jTreeDirectorio.getPathForRow(i);
@@ -371,21 +353,16 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             }
         }
         
-        // Rebuild tree
         DefaultMutableTreeNode rootNode = construirArbolDirectorio(fileSystem.getRoot());
         DefaultTreeModel model = new DefaultTreeModel(rootNode);
         jTreeDirectorio.setModel(model);
         
-        // Restore expanded state
         restoreExpandedState(jTreeDirectorio, rootNode, expandedObjects);
         
-        // Restore selection
         if (selectedObject != null) {
             restoreSelection(jTreeDirectorio, rootNode, selectedObject);
-            // Update info panel after restoring selection
             actualizarInfoSeleccionada();
         } else {
-            // Expand root by default if nothing was selected
             for (int i = 0; i < jTreeDirectorio.getRowCount(); i++) {
                 jTreeDirectorio.expandRow(i);
             }
@@ -401,7 +378,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             tree.expandPath(path);
         }
         
-        // Recursively check children
         for (int i = 0; i < node.getChildCount(); i++) {
             DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
             restoreExpandedState(tree, child, expandedObjects);
@@ -414,13 +390,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         Object userObject = node.getUserObject();
         boolean found = false;
         
-        // For String (directories), compare by value
         if (userObject instanceof String && targetObject instanceof String) {
             if (userObject.equals(targetObject)) {
                 found = true;
             }
         }
-        // For Archivo objects, compare by name and path
         else if (userObject instanceof Archivo && targetObject instanceof Archivo) {
             Archivo arch1 = (Archivo) userObject;
             Archivo arch2 = (Archivo) targetObject;
@@ -429,14 +403,12 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 found = true;
             }
         }
-        // For other cases, use equals
         else if (userObject != null && userObject.equals(targetObject)) {
             found = true;
         }
         
         if (found) {
             javax.swing.tree.TreePath path = new javax.swing.tree.TreePath(node.getPath());
-            // Expand all parent nodes
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
             while (parent != null) {
                 javax.swing.tree.TreePath parentPath = new javax.swing.tree.TreePath(parent.getPath());
@@ -448,7 +420,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             return true;
         }
         
-        // Recursively search children
         for (int i = 0; i < node.getChildCount(); i++) {
             DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
             if (restoreSelection(tree, child, targetObject)) {
@@ -463,7 +434,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(directorio.getNombre());
         boolean esAdmin = "Administrador".equals(modoUsuario);
         
-        // Add subdirectories
         Lista<Directorio> subdirs = directorio.getSubdirectorios();
         for (int i = 0; i < subdirs.size(); i++) {
             Directorio subdir = subdirs.get(i);
@@ -471,11 +441,9 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             node.add(subdirNode);
         }
         
-        // Add files (filtrar según modo de usuario)
         Lista<Archivo> archivos = directorio.getArchivos();
         for (int i = 0; i < archivos.size(); i++) {
             Archivo arch = archivos.get(i);
-            // Solo mostrar archivos públicos si es modo Usuario, o todos si es Admin
             if (esAdmin || "publico".equals(arch.getTipoArchivo())) {
                 DefaultMutableTreeNode archNode = new DefaultMutableTreeNode(arch);
                 node.add(archNode);
@@ -486,7 +454,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }
     
     private void configurarComponentesCRUD() {
-        // Crear y configurar el combo box de operaciones
         comboOperacion = new javax.swing.JComboBox<>(FileData.OperationType.values());
         comboOperacion1.setSelectedItem(FileData.OperationType.CREATE);
         comboOperacion1.addActionListener((ActionEvent e) -> {
@@ -507,7 +474,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         txtNuevoNombre.setVisible(false);
 //        getContentPane().add(txtNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 80, -1));
         
-        // Crear tabla para cola de procesos
         tablaColaProcesos = new javax.swing.JTable();
         tablaColaProcesos.setModel(new javax.swing.table.DefaultTableModel(
             new Object[][]{},
@@ -518,22 +484,17 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
 //        getContentPane().add(jScrollPaneCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 350, 400, 200));
         
         jLabelCola = new javax.swing.JLabel("Cola de Procesos:");
-//        getContentPane().add(jLabelCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 320, -1, -1));
         
-        // Inicializar visibilidad de inputs
         actualizarInputsSegunOperacion();
     }
     
     private void configurarDiskSchedulerCombo() {
-        // Configure existing diskSchedulingCombo combobox
         if (diskSchedulingCombo1 == null) {
             return; // ComboBox doesn't exist yet
         }
         
-        // Set model with disk scheduling algorithm types
         diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
         
-        // Set initial value based on current algorithm or default to FIFO
         ISchedullingDiskAlgorithm.SchedulingDiskType initialType = ISchedullingDiskAlgorithm.SchedulingDiskType.FIFO;
         if (fileSystem != null && fileSystem.getDiskScheduler() != null) {
             ISchedullingDiskAlgorithm algoritmoActual = fileSystem.getDiskScheduler().getAlgoritmo();
@@ -543,7 +504,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         }
         diskSchedulingCombo1.setSelectedItem(initialType);
         
-        // Add action listener to change algorithm when selected
         diskSchedulingCombo1.addActionListener((ActionEvent e) -> {
             cambiarAlgoritmoDisk();
         });
@@ -580,13 +540,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         
         if (nuevoAlgoritmo != null) {
             fileSystem.getDiskScheduler().setAlgoritmoDisk(nuevoAlgoritmo);
-            //System.out.println("Algoritmo de disco cambiado a: " + selected.name());
             System.out.println("[FS] Politica de Disco cambiada a: " + selected.name());
         }
     }
 
     private void iniciarTimer() { 
-        // Refrescar cada 100ms
         timerActualizacion = new Timer(100, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -597,44 +555,39 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     }
 
     private void refrescarInterfaz() {
-        // Actualizar Disco (ahora también necesita FileSystem para mostrar nombres de archivos)
         if (miPanelDisco != null && disk != null) {
             miPanelDisco.actualizarVista(this.disk, this.fileSystem);
         }
         
-        // Actualizar Tabla FAT
+        if (miPanelCola != null && fileSystem != null) {
+            miPanelCola.actualizarCola(fileSystem.getColaPeticiones());
+        }
+        
         if (miPanelTAA != null && fileSystem != null) {
             miPanelTAA.actualizarVista(this.fileSystem);
         }
         
-        // Actualizar cola de procesos
         if (tablaColaProcesos1 != null && so != null) {
             actualizarColaProcesos();
         }
         
-        // Verificar errores en operaciones completadas
         verificarErroresEnOperaciones();
         
-        // Actualizar JTree
         if (jTreeDirectorio != null && fileSystem != null) {
             actualizarJTree();
         }
         
-        // Actualizar combobox de algoritmo de disco para reflejar el algoritmo actual
         if (diskSchedulingCombo1 != null && fileSystem != null && fileSystem.getDiskScheduler() != null) {
             ISchedullingDiskAlgorithm algoritmoActual = fileSystem.getDiskScheduler().getAlgoritmo();
             if (algoritmoActual != null) {
                 ISchedullingDiskAlgorithm.SchedulingDiskType tipoActual = algoritmoActual.getSchedulingDiskType();
-                // Solo actualizar si es diferente para evitar eventos infinitos
                 Object selected = diskSchedulingCombo1.getSelectedItem();
                 if (selected == null || !selected.equals(tipoActual)) {
-                    // Temporarily remove listener to avoid triggering change event
                     java.awt.event.ActionListener[] listeners = diskSchedulingCombo1.getActionListeners();
                     for (java.awt.event.ActionListener listener : listeners) {
                         diskSchedulingCombo1.removeActionListener(listener);
                     }
                     diskSchedulingCombo1.setSelectedItem(tipoActual);
-                    // Re-add listeners
                     for (java.awt.event.ActionListener listener : listeners) {
                         diskSchedulingCombo1.addActionListener(listener);
                     }
@@ -648,7 +601,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             return;
         }
         
-        // Revisar todas las colas de procesos para encontrar operaciones completadas con errores
         Cola[] colas = {
             so.getColaListos(),
             so.getColaBloqueados(),
@@ -663,18 +615,14 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                     if (p != null && p.getFileData() != null) {
                         FileData data = p.getFileData();
                         String procesoId = p.getNombre();
-                        
-                        // Solo verificar operaciones RUD (no CREATE) que estén procesadas
-                        
+                                                
                         //VERO TE MODIFIQUE ESTO
                         //if (data.getOperationType() != FileData.OperationType.CREATE && 
                         //    data.isIsProcessed() && data.hasError()) {
                         if (data.isIsProcessed() && data.hasError()) {                       
                         String key = procesoId + "_" + data.getOperationType() + "_" + data.getFileName();
-                            // Solo mostrar una vez por proceso y operación
                             if (!procesosProcesados.contains(key)) {
                                 procesosProcesados.add(key);
-                                // Mostrar popup en el hilo de Swing
                                 final String errorMsg = data.getErrorMessage();
                                 final String opType = data.getOperationType().toString();
                                 javax.swing.SwingUtilities.invokeLater(() -> {
@@ -690,7 +638,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
             }
         }
         
-        // También revisar la cola de peticiones del FileSystem
         if (fileSystem != null && fileSystem.getColaPeticiones() != null) {
             Cola colaPeticiones = fileSystem.getColaPeticiones();
             if (colaPeticiones != null && !colaPeticiones.isEmpty()) {
@@ -701,11 +648,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                         FileData data = peticion.getFileData();
                         String procesoId = data.getProcessName();
                         
-                        // Solo verificar operaciones RUD (no CREATE) que estén procesadas
                         
-                        //VERO TE MODIFIQUE ESTO 
-                        //if (data.getOperationType() != FileData.OperationType.CREATE && 
-                        //    data.isIsProcessed() && data.hasError()) {
+
                         if (data.isIsProcessed() && data.hasError()) {
                             String key = procesoId + "_" + data.getOperationType() + "_" + data.getFileName();
                             if (!procesosProcesados.contains(key)) {
@@ -730,19 +674,16 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         javax.swing.table.DefaultTableModel modelo = (javax.swing.table.DefaultTableModel) tablaColaProcesos1.getModel();
         modelo.setRowCount(0);
         
-        // Obtener todas las colas de procesos
         Cola colaNuevos = so.getColaNuevos();
         Cola colaListos = so.getColaListos();
         Cola colaBloqueados = so.getColaBloqueados();
         Cola colaTerminados = so.getColaTerminados();
         
-        // Agregar procesos de cada cola
         agregarProcesosATabla(colaNuevos, "NUEVO", modelo);
         agregarProcesosATabla(colaListos, "LISTO", modelo);
         agregarProcesosATabla(colaBloqueados, "BLOQUEADO", modelo);
         agregarProcesosATabla(colaTerminados, "TERMINADO", modelo);
         
-        // Agregar procesos en la cola de peticiones del FileSystem
         if (fileSystem != null && fileSystem.getColaPeticiones() != null) {
             Cola colaPeticiones = fileSystem.getColaPeticiones();
             if (colaPeticiones != null && !colaPeticiones.isEmpty()) {
@@ -778,62 +719,47 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         }
     }
     
-    /**
-     * Valida si se puede leer un archivo (existe y tiene permisos)
-     * @param nombre Nombre del archivo
-     * @param ruta Ruta del directorio
-     * @param modoUsuario Modo de usuario ("Administrador" o "Usuario")
-     * @return null si puede leer, mensaje de error si no puede
-     */
+
     private String validarLecturaArchivo(String nombre, String ruta, String modoUsuario) {
         if (fileSystem == null) {
             return "Error: No hay conexión con el FileSystem";
         }
         
-        // Buscar el directorio
         CoreV2.Directorio directorio = buscarDirectorioPorRuta(ruta);
         if (directorio == null) {
             return "El directorio '" + ruta + "' no existe.";
         }
         
-        // Buscar el archivo en el directorio
         CoreV2.Archivo archivo = directorio.buscarArchivo(nombre);
         if (archivo == null) {
             return "El archivo '" + nombre + "' no existe en '" + ruta + "'.";
         }
         
-        // Validar permisos: Usuario solo puede leer archivos públicos
         if ("Usuario".equals(modoUsuario) && "privado".equals(archivo.getTipoArchivo())) {
             return "Acceso denegado: No tiene permisos para leer archivos privados del sistema.";
         }
         
-        // Si pasa todas las validaciones, puede leer
         return null;
     }
     
     private void mostrarPopupLeyendo() {
-        // Ejecutar en el hilo de Swing para evitar bloqueos
         SwingUtilities.invokeLater(() -> {
-            // Crear un JOptionPane personalizado pero no modal
             JOptionPane optionPane = new JOptionPane(
                 "Leyendo archivo...",
                 JOptionPane.INFORMATION_MESSAGE,
                 JOptionPane.DEFAULT_OPTION,
-                null, // null para usar el icono por defecto
-                new Object[]{}, // Sin botones
+                null, 
+                new Object[]{}, 
                 null
             );
             
-            // Crear el diálogo desde el JOptionPane
             JDialog dialog = optionPane.createDialog(this, "");
-            dialog.setModal(false); // No bloquear la interfaz
+            dialog.setModal(false);
             dialog.setAlwaysOnTop(true);
             dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             
-            // Mostrar el diálogo
             dialog.setVisible(true);
             
-            // Cerrar el diálogo después de un pequeño delay (800ms)
             Timer timer = new Timer(800, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -848,7 +774,6 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private void actualizarInputsSegunOperacion() {
         FileData.OperationType op = (FileData.OperationType) comboOperacion1.getSelectedItem();
         
-        // Ocultar todos primero
         jLabel1.setVisible(false);
         jLabel2.setVisible(false);
         labelNuevoNombre.setVisible(false);
@@ -918,6 +843,8 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         tablaColaProcesos1 = new javax.swing.JTable();
         jLabel6 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
+        panelContenedorCola = new javax.swing.JPanel();
+        jLabel14 = new javax.swing.JLabel();
         comboOperacion1 = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         txtNuevoNombre1 = new javax.swing.JTextField();
@@ -940,15 +867,23 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(255, 51, 0));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(0, 51, 102));
         jLabel1.setText("Nombre");
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 110, -1, -1));
 
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(0, 51, 102));
         jLabel2.setText("Tamaño");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 150, -1, -1));
+
+        txtCrearNombre.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         getContentPane().add(txtCrearNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 110, 110, -1));
 
+        txtCrearTamano.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         txtCrearTamano.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCrearTamanoActionPerformed(evt);
@@ -956,22 +891,32 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         });
         getContentPane().add(txtCrearTamano, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 150, 110, -1));
 
+        btnCrear.setBackground(new java.awt.Color(0, 51, 102));
+        btnCrear.setForeground(new java.awt.Color(255, 255, 255));
         btnCrear.setText("CREAR");
+        btnCrear.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        btnCrear.setBorderPainted(false);
+        btnCrear.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         btnCrear.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCrearActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 230, 140, 20));
+        getContentPane().add(btnCrear, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 230, 140, 30));
 
+        panelIzq.setBackground(new java.awt.Color(225, 246, 255));
         panelIzq.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 490, 110));
+
+        miPanelTAA.setAutoscrolls(true);
+        panelIzq.add(miPanelTAA, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 480, -1));
         panelIzq.add(miPanelDisco, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 470, 360, 240));
 
         jLabel5.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(0, 51, 102));
         jLabel5.setText("Tabla de Asignaciones");
         panelIzq.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 290, -1, -1));
 
+        tablaColaProcesos1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         tablaColaProcesos1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -983,20 +928,33 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 "Proceso", "Operación", "Estado", "Archivo"
             }
         ));
+        tablaColaProcesos1.setAutoscrolls(false);
         jScrollPaneCola1.setViewportView(tablaColaProcesos1);
 
         panelIzq.add(jScrollPaneCola1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, 480, 100));
 
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        jLabel6.setText("Visualización de Procesos");
-        panelIzq.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, -1, -1));
+        jLabel6.setForeground(new java.awt.Color(0, 51, 102));
+        jLabel6.setText("Cola de Peticiones");
+        panelIzq.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 30, -1, -1));
 
         jLabel8.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel8.setForeground(new java.awt.Color(0, 51, 102));
         jLabel8.setText("Disco Secundario (SD)");
         panelIzq.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 440, -1, -1));
 
+        panelContenedorCola.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        panelContenedorCola.setAutoscrolls(true);
+        panelIzq.add(panelContenedorCola, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 480, 80));
+
+        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel14.setForeground(new java.awt.Color(0, 51, 102));
+        jLabel14.setText("Visualización de Procesos");
+        panelIzq.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, -1, -1));
+
         getContentPane().add(panelIzq, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 0, 520, 690));
 
+        comboOperacion1.setForeground(new java.awt.Color(0, 51, 102));
         comboOperacion1.setModel(new javax.swing.DefaultComboBoxModel<>(FileData.OperationType.values()));
         comboOperacion1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1005,21 +963,28 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         });
         getContentPane().add(comboOperacion1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 60, 110, 20));
 
+        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(0, 51, 102));
         jLabel4.setText("Operación");
         getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 60, -1, -1));
         getContentPane().add(txtNuevoNombre1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 150, 110, -1));
 
+        labelNuevoNombre.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        labelNuevoNombre.setForeground(new java.awt.Color(0, 51, 102));
         labelNuevoNombre.setText("Nuevo Nombre");
         getContentPane().add(labelNuevoNombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 150, -1, 20));
 
         lblTic.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        lblTic.setForeground(new java.awt.Color(0, 51, 102));
         lblTic.setText("Tic: 0");
         getContentPane().add(lblTic, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 500, -1, -1));
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel9.setForeground(new java.awt.Color(0, 51, 102));
         jLabel9.setText("Archivo");
         getContentPane().add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 30, -1, -1));
 
+        txtRutaDirectorio1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         txtRutaDirectorio1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtRutaDirectorio1ActionPerformed(evt);
@@ -1027,20 +992,31 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         });
         getContentPane().add(txtRutaDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 190, 110, -1));
 
+        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel10.setForeground(new java.awt.Color(0, 51, 102));
         jLabel10.setText("Ruta");
         getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 190, 30, 20));
 
+        btnCrearDirectorio1.setBackground(new java.awt.Color(0, 51, 102));
+        btnCrearDirectorio1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        btnCrearDirectorio1.setForeground(new java.awt.Color(255, 255, 255));
         btnCrearDirectorio1.setText("Crear Directorio");
+        btnCrearDirectorio1.setBorderPainted(false);
         btnCrearDirectorio1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCrearDirectorio1ActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 370, 140, 20));
+        getContentPane().add(btnCrearDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 370, 140, 30));
 
+        btnEliminarDirectorio1.setBackground(new java.awt.Color(0, 51, 102));
+        btnEliminarDirectorio1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        btnEliminarDirectorio1.setForeground(new java.awt.Color(255, 255, 255));
         btnEliminarDirectorio1.setText("Eliminar Directorio");
-        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 410, 140, -1));
+        btnEliminarDirectorio1.setBorderPainted(false);
+        getContentPane().add(btnEliminarDirectorio1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 410, 140, 30));
 
+        diskSchedulingCombo1.setForeground(new java.awt.Color(0, 51, 102));
         diskSchedulingCombo1.setModel(new javax.swing.DefaultComboBoxModel<>(ISchedullingDiskAlgorithm.SchedulingDiskType.values()));
         diskSchedulingCombo1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1050,6 +1026,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         getContentPane().add(diskSchedulingCombo1, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 30, 100, 20));
 
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel11.setForeground(new java.awt.Color(0, 51, 102));
         jLabel11.setText("Directorio");
         getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 340, 80, -1));
 
@@ -1057,26 +1034,33 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         txtLog.setColumns(20);
         txtLog.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         txtLog.setRows(5);
+        txtLog.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jScrollPane1.setViewportView(txtLog);
 
         getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 530, 400, 110));
 
         jLabel12.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel12.setForeground(new java.awt.Color(0, 51, 102));
         jLabel12.setText("Política");
         getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 30, -1, 20));
 
         jLabel13.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel13.setForeground(new java.awt.Color(0, 51, 102));
         jLabel13.setText("Log");
         getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 500, -1, -1));
 
+        btnCargarTXT.setBackground(new java.awt.Color(0, 51, 102));
+        btnCargarTXT.setForeground(new java.awt.Color(255, 255, 255));
         btnCargarTXT.setText("Cargar TXT");
+        btnCargarTXT.setBorderPainted(false);
         btnCargarTXT.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCargarTXTActionPerformed(evt);
             }
         });
-        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 270, 140, 20));
+        getContentPane().add(btnCargarTXT, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 270, 140, 30));
 
+        comboModoUsuario.setForeground(new java.awt.Color(0, 51, 102));
         comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
         comboModoUsuario.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1085,23 +1069,26 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
         });
         getContentPane().add(comboModoUsuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 30, 120, -1));
 
+        jButton1.setBackground(new java.awt.Color(0, 51, 102));
+        jButton1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(255, 255, 255));
         jButton1.setText("Ver Estadisticas");
+        jButton1.setBorderPainted(false);
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 570, -1, -1));
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 570, -1, 40));
 
         jLabel7.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(0, 51, 102));
         jLabel7.setText("Modo");
         getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 30, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    // Modifica este método que ya tienes (o crea uno nuevo para el botón Crear)
-    // Si le das doble clic al botón CREAR en "Design", te llevará aquí.
     
     private void txtCrearTamanoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCrearTamanoActionPerformed
         // TODO add your handling code here:
@@ -1122,13 +1109,11 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                 return;
             }
             
-            // Get directory path from input
             String ruta = txtRutaDirectorio1.getText().trim();
             if (ruta.isEmpty()) {
                 ruta = "root";
             }
             
-            // Determinar tipo de archivo según el modo
             String tipoArchivo = "Administrador".equals(modoUsuario) ? "privado" : "publico";
             
             switch (op) {
@@ -1150,15 +1135,12 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
                     break;
                     
                 case READ:
-                    // Primero validar si el archivo existe y tiene permisos
                     String errorValidacion = validarLecturaArchivo(nombre, ruta, modoUsuario);
                     if (errorValidacion != null) {
-                        // Si hay error, mostrar mensaje sin popup de "Leyendo"
                         JOptionPane.showMessageDialog(this, errorValidacion, "Error al leer archivo", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
                     
-                    // Si pasa la validación, mostrar popup y crear el proceso
                     mostrarPopupLeyendo();
                     System.out.println("GUI: Creando proceso para leer archivo: " + nombre + " en " + ruta);
                     so.crearProcesoIO(FileData.OperationType.READ, nombre, ruta, tipoArchivo, modoUsuario);
@@ -1425,6 +1407,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1438,6 +1421,7 @@ public class SimuladorGUIForm extends javax.swing.JFrame {
     private javax.swing.JLabel lblTic;
     private Interfaces.PanelDiscoForm miPanelDisco;
     private Interfaces.PanelTAAForm miPanelTAA;
+    private javax.swing.JPanel panelContenedorCola;
     private javax.swing.JPanel panelIzq;
     private javax.swing.JTable tablaColaProcesos1;
     private javax.swing.JTextField txtCrearNombre;

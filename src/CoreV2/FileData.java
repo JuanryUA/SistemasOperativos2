@@ -15,15 +15,15 @@ public class FileData {
     }
     
     private String fileName;
-    private String newFileName; // For UPDATE operation
+    private String newFileName; 
     private int fileSize; //tamano en bloques del futuro archivo
-    private String ruta; // Directory path like "root/x/y/z"
+    private String ruta; 
     private boolean isProcessed;
-    private String processName; // Nombre del proceso que creó este archivo
+    private String processName; 
     private OperationType operationType;
-    private String errorMessage; // Mensaje de error si la operación falla
-    private String tipoArchivo; // "publico" o "privado"
-    private String modoUsuario; // "Administrador" o "Usuario" - modo del usuario que hace la petición
+    private String errorMessage; 
+    private String tipoArchivo; 
+    private String modoUsuario; 
 
     public FileData(String fileName, int fileSize) {
         this.fileName=fileName;
@@ -32,8 +32,8 @@ public class FileData {
         this.isProcessed = false;
         this.processName = null;
         this.operationType = OperationType.CREATE;
-        this.tipoArchivo = "publico"; // Default
-        this.modoUsuario = "Usuario"; // Default
+        this.tipoArchivo = "publico"; 
+        this.modoUsuario = "Usuario"; 
     }
     
     public FileData(String fileName, int fileSize, String processName) {
@@ -43,8 +43,8 @@ public class FileData {
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = OperationType.CREATE;
-        this.tipoArchivo = "publico"; // Default
-        this.modoUsuario = "Usuario"; // Default
+        this.tipoArchivo = "publico"; 
+        this.modoUsuario = "Usuario"; 
     }
     
     public FileData(String fileName, int fileSize, String ruta, String processName) {
@@ -54,8 +54,8 @@ public class FileData {
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = OperationType.CREATE;
-        this.tipoArchivo = "publico"; // Default
-        this.modoUsuario = "Usuario"; // Default
+        this.tipoArchivo = "publico"; 
+        this.modoUsuario = "Usuario"; 
     }
     
     public FileData(String fileName, int fileSize, String ruta, String processName, String tipoArchivo) {
@@ -66,7 +66,7 @@ public class FileData {
         this.processName = processName;
         this.operationType = OperationType.CREATE;
         this.tipoArchivo = tipoArchivo != null ? tipoArchivo : "publico";
-        this.modoUsuario = "Usuario"; // Default
+        this.modoUsuario = "Usuario"; 
     }
     
     public FileData(String fileName, OperationType operationType, String processName) {
@@ -76,8 +76,8 @@ public class FileData {
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = operationType;
-        this.tipoArchivo = "publico"; // Default
-        this.modoUsuario = "Usuario"; // Default
+        this.tipoArchivo = "publico"; 
+        this.modoUsuario = "Usuario"; 
     }
     
     public FileData(String fileName, String ruta, OperationType operationType, String processName) {
@@ -87,8 +87,8 @@ public class FileData {
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = operationType;
-        this.tipoArchivo = "publico"; // Default
-        this.modoUsuario = "Usuario"; // Default
+        this.tipoArchivo = "publico"; 
+        this.modoUsuario = "Usuario"; 
     }
     
 //    public FileData(String fileName, String newFileName, OperationType operationType, String processName) {
@@ -109,8 +109,8 @@ public class FileData {
         this.isProcessed = false;
         this.processName = processName;
         this.operationType = operationType;
-        this.tipoArchivo = "publico"; // Default
-        this.modoUsuario = "Usuario"; // Default
+        this.tipoArchivo = "publico"; 
+        this.modoUsuario = "Usuario";
     }
 
     public String getFileName() {

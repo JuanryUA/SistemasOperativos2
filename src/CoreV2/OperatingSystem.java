@@ -99,7 +99,6 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
 //        this.gui = gui;
 //    }
     
-    //NO IO Bound
     public void crearProceso(Proceso.Tipo tipo, int instrucciones, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo) {
 //        System.out.println("entro A CRar");
         String nombre = "P"+processCounter;
@@ -113,28 +112,23 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         processCounter++;
     }
     
-    //IO Bound EL QUE SE USA EN ESTE PROYECTO NADA MAS !!!
     public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo) {
         crearProceso(tipo, prioridad, nombreFuturoArchivo, sizeFuturoArchivo, "root");
     }
     
-    //IO Bound with directory path
     public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta) {
         crearProceso(tipo, prioridad, nombreFuturoArchivo, sizeFuturoArchivo, ruta, "publico");
     }
     
-    //IO Bound with directory path and file type
     public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta, String tipoArchivo) {
         crearProceso(tipo, prioridad, nombreFuturoArchivo, sizeFuturoArchivo, ruta, tipoArchivo, "Usuario");
     }
     
-    //IO Bound with directory path, file type and user mode
     public void crearProceso(Proceso.Tipo tipo, int prioridad, String nombreFuturoArchivo, int sizeFuturoArchivo, String ruta, String tipoArchivo, String modoUsuario) {
 //        System.out.println("entro A CRar");
         String nombre = "P"+processCounter;
 
         Proceso p = new Proceso(processCounter, nombre, nombreFuturoArchivo, sizeFuturoArchivo, ruta);
-        // Establecer el tipo de archivo y modo de usuario en el FileData del proceso
         if (p.getFileData() != null) {
             p.getFileData().setTipoArchivo(tipoArchivo);
             p.getFileData().setModoUsuario(modoUsuario);
@@ -156,23 +150,18 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         this.agregarProceso(p);
     }
     
-    // Método para crear procesos IO con diferentes operaciones CRUD
-    // Versión sin ruta (usa "root" por defecto)
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo) {
         crearProcesoIO(operationType, nombreArchivo, "root", "publico", "Usuario");
     }
     
-    // Versión con ruta
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String ruta) {
         crearProcesoIO(operationType, nombreArchivo, ruta, "publico", "Usuario");
     }
     
-    // Versión con ruta y tipoArchivo
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String ruta, String tipoArchivo) {
         crearProcesoIO(operationType, nombreArchivo, ruta, tipoArchivo, "Usuario");
     }
     
-    // Versión completa sin nuevoNombre (para CREATE, READ, DELETE)
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String ruta, String tipoArchivo, String modoUsuario) {
         String nombre = "P" + processCounter;
         // Crear FileData con el tipo de operación correcto
@@ -187,7 +176,6 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         this.agregarProceso(p);
     }
     
-    // Versión completa con nuevoNombre para UPDATE (6 parámetros - sin ambigüedad)
     public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta, String tipoArchivo, String modoUsuario) {
         String nombre = "P" + processCounter;
         // Crear FileData con el tipo de operación correcto
@@ -202,14 +190,11 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
         this.agregarProceso(p);
     }
     
-//    // Métodos de compatibilidad para UPDATE con menos parámetros - usando null para distinguir
 //    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta) {
-//        // Usar el método de 6 parámetros con valores por defecto
 //        crearProcesoIO(operationType, nombreArchivo, nuevoNombre, ruta, "publico", "Usuario");
 //    }
 //    
 //    public void crearProcesoIO(FileData.OperationType operationType, String nombreArchivo, String nuevoNombre, String ruta, String tipoArchivo) {
-//        // Usar el método de 6 parámetros con modoUsuario por defecto
 //        crearProcesoIO(operationType, nombreArchivo, nuevoNombre, ruta, tipoArchivo, "Usuario");
 //    }
 
@@ -268,11 +253,7 @@ for (int i = 0; i < equidadesPorPolitica.length; i++) {
     public void interrumpirProceso(Proceso p) {
         moverAColaListos(p);
     }
-    
-    /**
- * Intenta cargar procesos de la cola de Nuevos a la memoria (Listos)
- * si hay espacio disponible.
- */
+
 public void intentarCargarProcesosNuevos() {
     // Iteramos de forma segura. Sacamos uno, probamos, y si falla lo volvemos a meter.
     int n = colaNuevos.size();
@@ -283,22 +264,18 @@ public void intentarCargarProcesosNuevos() {
     
     System.out.println("DEBUG: Revisando " + n + " procesos en colaNuevos.");
 
-    // Usamos un bucle for tradicional porque modificaremos la cola
     for (int i = 0; i < n; i++) {
-        Proceso p = colaNuevos.poll(); // Saca el primero
-        if (p == null) break; // Seguridad
+        Proceso p = colaNuevos.poll();
+        if (p == null) break; 
 
         if (memory.cargarProceso(p)) {
-            // Éxito: Mover de Nuevos a Listos
             p.setEstado(Proceso.Estado.LISTO);
             moverAColaListos(p);
             System.out.println("SO: " + p.getNombre() + " cargado desde Nuevos a Listos.");
         } else {
-            // Fracaso: Memoria sigue llena. Devolver a la cola (al final).
             System.out.println("DEBUG: " + p.getNombre() + " no cupo. Devolviendo a la cola.");
             colaNuevos.add(p);
             break;
-            // IMPORTANTE: Si el primero que intentamos no cupo,
             // es muy probable que los siguientes (que llegaron después) tampoco.
             // Rompemos el bucle para no revisar innecesariamente.
         }
@@ -313,9 +290,7 @@ public void intentarCargarProcesosNuevos() {
         moverATerminados(p);
         memory.liberarProceso(p);
         System.out.println("DEBUG: P" + p.getId() + " terminó. Revisando cola de nuevos...");
-        // ▼▼▼ AÑADIR ESTA LÍNEA AQUÍ ▼▼▼
     intentarCargarProcesosNuevos();
-    // ▲▲▲ FIN DE LA LÍNEA AÑADIDA ▲▲▲
 //        logEvent("Proceso " + p.getNombre() + " pasa a TERMINADO y se libera memoria."); // <-- Añadir log
         System.out.println("SO: " + p.getNombre() + " finalizado y liberado de memoria");
 //        System.out.println("--->----> "+p.getTiempoEsperando());
@@ -380,7 +355,6 @@ public void intentarCargarProcesosNuevos() {
     }
 
     public void setAlgoritmo(ISchedulingAlgorithm algoritmo) {
-        // Actualizar la política actual
         this.currentPolicyType = algoritmo.getSchedulingType();
         scheduler.setAlgoritmo(algoritmo);
 //        logEvent("SO: Algoritmo de planificación cambiado a " + this.currentPolicyType); // <-- Añadir log
@@ -495,7 +469,6 @@ public void intentarCargarProcesosNuevos() {
 //            }
 //        }
 //    }
-//    // 🔹 Verifica si hay falta de memoria y suspende procesos si es necesario
 //    public void verificarYSuspenderProcesos(Proceso p) {
 //        if (!memory.findAvailableBlock(p)) {
 //            Proceso candidato = null;

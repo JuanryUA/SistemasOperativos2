@@ -14,10 +14,8 @@ import java.util.logging.Logger;
  * @author verol
  */
 public class DMA {
-//    private final Semaphore mutex = new Semaphore(1); // protege acceso concurrente
     private boolean running = false;
-    private long unidadTiempoMs; // duración de un tick
-//    private Runnable onESComplete; // callback al completar E-S, pero ¡'callback' ahora es una variable local del hilo!
+    private long unidadTiempoMs; 
 
     public DMA(long unidadTiempoMs) {
         this.unidadTiempoMs = unidadTiempoMs;
@@ -28,15 +26,12 @@ public class DMA {
             try {
                 System.out.println("[DMA] Entro al DMA");
                 System.out.println("[DMA] Transportando datos del proceso " + p.getNombre() + " para crear peticion...");
-                //System.out.println("ENTRO AL DMA");
                 FileData fileData = p.getFileData();
                 System.out.println("        DMA: Hilo de " + p.getNombre() + " intentando acceder a FileSystem...");
                 filesystem.agregarPeticion(fileData);
                 
                 
-//                mutex.acquire();
                 running = true;
-//                this.onESComplete = callback;
                 
                 while(fileData.isIsProcessed() != true){
                     try {
@@ -49,15 +44,13 @@ public class DMA {
                 
                 System.out.println("DMA: Operación E/S completada → genera interrupción al SO (" + p.getNombre() + ")");
                 
-                // vvv ¡USA LA VARIABLE LOCAL 'callback'! vvv
                 if (callback != null) {
                     System.out.println("SALIO DEL DMA");
-                    callback.run(); // ¡Ahora llama al callback correcto!
+                    callback.run(); 
                 }
 
             } finally {
                 running = false;
-//                mutex.release();
             }
         }).start();
     }

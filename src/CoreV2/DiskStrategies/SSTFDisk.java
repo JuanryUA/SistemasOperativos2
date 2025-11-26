@@ -43,12 +43,10 @@ public class SSTFDisk implements ISchedullingDiskAlgorithm {
             return null;
         }
         
-        // Find the request with the shortest seek time
         Nodo actual = colaPeticiones.getFrente();
         Petition closestPeticion = null;
         int minDistance = Integer.MAX_VALUE;
         
-        // First pass: find the closest request
         while (actual != null) {
             Petition peticion = actual.getPeticion();
             if (peticion != null) {
@@ -57,7 +55,6 @@ public class SSTFDisk implements ISchedullingDiskAlgorithm {
                     minDistance = distance;
                     closestPeticion = peticion;
                 }
-                // If we find a request at the current position, prioritize it
                 if (distance == 0) {
                     closestPeticion = peticion;
                     break;
@@ -66,7 +63,6 @@ public class SSTFDisk implements ISchedullingDiskAlgorithm {
             actual = actual.getSiguiente();
         }
         
-        // Remove the closest petition from the queue
         if (closestPeticion != null) {
             colaPeticiones.remove(closestPeticion);
             return closestPeticion;
